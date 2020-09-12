@@ -1,9 +1,10 @@
 mod cli;
 mod encrypting;
+mod tests;
 
 
 fn main() {
-    encrypting::encryption::main()
+    encrypting::encryption::test();
 /*
     let (one, two) = keys;
 
