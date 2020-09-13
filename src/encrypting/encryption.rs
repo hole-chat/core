@@ -25,7 +25,8 @@ pub fn private_key_from_sring (pk: String) -> PrivateKey {
     return imported
 }
 
-pub fn generate () -> (String, String, KeyPair) {
+
+pub fn generate_kp () -> (String, String, KeyPair) {
     let rand_ctx            = ntru::rand::init(&RNG_DEFAULT).unwrap();
     let kp                  = ntru::generate_key_pair(&DEFAULT_PARAMS_256_BITS, &rand_ctx).unwrap();
     // extracting public and private key from kp
@@ -34,22 +35,34 @@ pub fn generate () -> (String, String, KeyPair) {
     // getting pub and priv key params for exporting
     let pub_key_params      = KeyPair::get_params(&kp).unwrap();
     let private_key_params  = PrivateKey::get_params(&private_key).unwrap();
-    // exporting 
+    // exporting
     let pub_key_exported:       Box<[u8]>       = PublicKey::export(&pub_key, &pub_key_params);
     let private_key_exported:   Box<[u8]>       = PrivateKey::export(&private_key, &private_key_params);
     // converting to string
     let pub_key_string                          = u8_to_string(&pub_key_exported);
     let private_key_string                      = u8_to_string(&private_key_exported);
-    
     return (pub_key_string, private_key_string, kp )
 }
 
-pub fn encrypt_message (msg:String, key: PublicKey ) -> String {
+pub fn kp_from_string (public: String,private: String) -> KeyPair {
+    let pub_key = public_key_from_sring(public);
+    let priv_key = private_key_from_sring(private);
+    
+    let keypair = KeyPair::new(priv_key, pub_key);
 
+    return keypair;
+
+}
+
+pub fn encrypt_message (msg:String, key: &PublicKey ) -> String {
+
+    // to bytes
     let _msg = msg.into_bytes();
+    //encrypting
     let rand_ctx = ntru::rand::init(&RNG_DEFAULT).unwrap();
     let encrypted = ntru::encrypt(&_msg, &key, &DEFAULT_PARAMS_256_BITS,
                               &rand_ctx).unwrap();
+    //to string
     let message = u8_to_string(&encrypted);
     return message
 }
@@ -62,27 +75,4 @@ pub fn decrypt_message(msg: String, kp: &KeyPair) -> String {
 }
 
 
-pub fn test () {
-    let (public, private, key_pair) = generate();
-
-
-    let initial_pub     = KeyPair::get_public(&key_pair);
-    let initial_priv    = KeyPair::get_private(&key_pair);
-
-    let final_pub   =  public_key_from_sring(public);
-    let final_priv  =  private_key_from_sring(private);
-
-    let bo0 = initial_pub  == &final_pub;
-    let bo1 = initial_priv == &final_priv;
-    /*
-    print!("Pub : {}, Priv : {}", bo0, bo1);
-
-    assert_eq!(initial_pub, &final_pub);
-    assert_eq!(initial_priv, &final_priv);
-*/
-    let encrypted_message = encrypt_message(String::from("hello god"), final_pub);
-    let decrypted_message = decrypt_message(encrypted_message, &key_pair);
-    print!("Msg was decrypted: {}", decrypted_message);
-
-}
 
