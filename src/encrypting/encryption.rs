@@ -1,6 +1,6 @@
 use ntru::rand::RNG_DEFAULT;
 use ntru::encparams::{DEFAULT_PARAMS_256_BITS};
-use ntru::types::{KeyPair, PrivateKey, PublicKey};
+pub use ntru::types::{KeyPair, PrivateKey, PublicKey};
 use std::str;
 use std::u8;
 extern crate ntru;
@@ -67,12 +67,17 @@ pub fn encrypt_message (msg:String, key: &PublicKey ) -> String {
     return message
 }
 
-pub fn decrypt_message(msg: String, kp: &KeyPair) -> String {
+pub fn decrypt_message(msg: String, kp: &KeyPair, final_msg: &mut String) {
     let encrypted_message = msg.into_bytes();
-    let decrypted = ntru::decrypt(&encrypted_message, &kp, &DEFAULT_PARAMS_256_BITS).unwrap();
-    let decrypted_string = u8_to_string(&decrypted);
-    return decrypted_string
+    let decrypted = ntru::decrypt(&encrypted_message, &kp, &DEFAULT_PARAMS_256_BITS);
+    match decrypted {
+        Ok(res) => {
+            *final_msg = u8_to_string(&res)
+        },
+        Err(e) => {}            
+    }
 }
+
 
 
 

@@ -1,9 +1,10 @@
 mod cli;
 mod encrypting;
+use encrypting::{KeyPair, generate_kp, encrypt_message, decrypt_message};
 
 
 fn main() {
-/*
+   /*
     let (one, two) = keys;
 
     let value =String::from_utf8_lossy(&*one);

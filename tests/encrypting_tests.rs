@@ -1,6 +1,4 @@
 use hole::encrypting::encryption::*;
-use std::collections::HashMap;
-use ntru::types::{KeyPair, PrivateKey, PublicKey};
 
 
 #[test]
@@ -44,11 +42,30 @@ fn it_making_correct_decrypt () {
 
 
    let msg = "👻: it's a ghost. Ghost is unexpectively bloodthirsty".to_string();
-   let my_msg = "👻: it's a ghost. Ghost is unexpectively bloodthirsty".to_string();
+   let my_msg = msg.clone();
  
+   let mut dec_msg = "".to_string();
 
    let enc_msg = encrypt_message(msg, public);
-   let dec_msg = decrypt_message(enc_msg, &keypair);
+   decrypt_message(enc_msg, &keypair, &mut dec_msg);
    assert_eq!(my_msg, dec_msg) 
 }
 
+
+#[test]
+fn it_skipping_decrypt () {
+   let (_, _, keypair) = generate_kp();
+   let (_, _, wrong_keypair) = generate_kp();
+
+   let public = KeyPair::get_public(&keypair);
+
+
+   let msg = "👻: it's a ghost. Ghost is unexpectively bloodthirsty".to_string();
+   let my_msg = msg.clone();
+ 
+   let mut dec_msg = "".to_string();
+
+   let enc_msg = encrypt_message(msg, public);
+   decrypt_message(enc_msg, &wrong_keypair, &mut dec_msg);
+   assert_ne!(my_msg, dec_msg) 
+}
