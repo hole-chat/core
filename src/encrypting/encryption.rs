@@ -67,6 +67,8 @@ pub fn encrypt_message (msg:String, key: &PublicKey ) -> String {
     return message
 }
 
+type CallBack = fn ();
+
 pub fn decrypt_message(msg: String, kp: &KeyPair, final_msg: &mut String) {
     let encrypted_message = msg.into_bytes();
     let decrypted = ntru::decrypt(&encrypted_message, &kp, &DEFAULT_PARAMS_256_BITS);

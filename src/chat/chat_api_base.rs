@@ -1,3 +1,5 @@
+use super::front_conn;
+
 pub struct Message {
     sender_id: i32,
     message: String,
