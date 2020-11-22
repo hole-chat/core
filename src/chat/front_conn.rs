@@ -9,7 +9,7 @@ use async_tungstenite::{accept_async, tungstenite::Message, WebSocketStream};
 use futures::{SinkExt, StreamExt};
 use serde_derive::Deserialize;
 use std::env;
-pub fn listen_client() -> io::Result<()> {
+pub fn listen_client(sync: std::sync::mpsc::Sender) -> io::Result<()> {
     task::block_on(connect_to_client())
 }
 
