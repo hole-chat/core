@@ -4,6 +4,7 @@ mod db;
 mod encrypting;
 use async_std::io;
 use chat::front_conn::listen_client;
+use chat::types::PackedMessage;
 
 use std::{
     sync::{
@@ -41,56 +42,25 @@ use std::{
                         +-----------------------------------------------------------------------------------+
 */
 fn main() -> io::Result<()> {
-    //    listen_client();
+    let (server_sender, server_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
+        mpsc::channel();
+    let (client_sender, client_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
+        mpsc::channel();
 
-    enum ClientMessage {
-        Message(String),
-        Nope,
-    }
-    struct MFA {
-        encoded_msg: String, // TODO add User field
-    }; //Message from above
+    let server_thread = thread::spawn(move || {
+        let cr = client_sender;
+        let sr = server_receiver;
 
-    struct ClientHandler {
-        message: ClientMessage,
-    }
-
-    struct ServerHandler {
-        messages: Vec<MFA>,
-    }
-
-    let (server_sender, server_receiver): (Sender<MFA>, Receiver<MFA>) = mpsc::channel(); // server sender, server receiver
-    let (client_sender, client_receiver): (Sender<MFA>, Receiver<MFA>) = mpsc::channel(); // client sender, client receiver
-
-    thread::spawn(listen_client(server_sender));
-
-    let client_listener = thread::spawn(move || {
-        let new_msg: MFA = client_receiver.recv().unwrap();
-        println!("{:?}", new_msg.encoded_msg);
+        println!("Multithreadding YAY!!! {}", sr.recv().unwrap().message);
     });
+    let client_thread = thread::spawn(move || {
+        let ss = server_sender;
+        let cr = client_receiver;
 
-    let server_listener = thread::spawn(move || loop {
-        let m1 = String::from("It's a encoded message from Jim");
-        let m2 = String::from("It's a encoded message from one killer, who trying to find you");
-
-        // let mut fromabove =  ServerHandler{messages: vec![MFA(m1), MFA(m2)]};
-
-        // for msg in fromabove.messages.iter() {
-        let msg = MFA { encoded_msg: m1 };
-
-        client_sender.send(msg);
-        // }
-
-        let mut a: ClientHandler = ClientHandler {
-            message: ClientMessage::Message(String::from("yup")),
-        };
-        let it_will_drop = match a.message {
-            ClientMessage::Message(m) => m,
-            ClientMessage::Nope => String::from("fail!!"),
-        };
+        thread::spawn(|| listen_client(ss));
     });
-    server_listener.join().expect("fail listening server");
-    client_listener.join().expect("fail listening client");
+    server_thread.join();
+    client_thread.join();
     Ok(())
 }
 /*

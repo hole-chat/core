@@ -1,3 +1,4 @@
+use crate::chat::types::PackedMessage;
 use crate::db;
 use crate::encrypting;
 use async_std::{
@@ -9,11 +10,15 @@ use async_tungstenite::{accept_async, tungstenite::Message, WebSocketStream};
 use futures::{SinkExt, StreamExt};
 use serde_derive::Deserialize;
 use std::env;
-pub fn listen_client(sync: std::sync::mpsc::Sender) -> io::Result<()> {
-    task::block_on(connect_to_client())
+use std::sync::mpsc::Sender;
+
+type SP = Sender<PackedMessage>;
+
+pub fn listen_client(server_sender: SP) -> io::Result<()> {
+    task::block_on(connect_to_client(server_sender))
 }
 
-async fn connect_to_client() -> io::Result<()> {
+async fn connect_to_client(server_sender: SP) -> io::Result<()> {
     let addr = env::args()
         .nth(1)
         .unwrap_or_else(|| "127.0.0.1:8080".to_string());
@@ -22,7 +27,8 @@ async fn connect_to_client() -> io::Result<()> {
 
     println!("Debugging!");
     while let Ok((stream, _)) = listener.accept().await {
-        task::spawn(accept_client(stream));
+        let ss = server_sender.clone();
+        task::spawn(accept_client(stream, ss));
     }
     println!("Debugging 2!");
 
@@ -37,7 +43,7 @@ struct FrontMsg {
     time: String,
 }
 
-async fn accept_client(stream: TcpStream) -> io::Result<()> {
+async fn accept_client(stream: TcpStream, server_sender: SP) -> io::Result<()> {
     let addr = stream
         .peer_addr()
         .expect("connected streams should have a peer address");
@@ -59,6 +65,7 @@ async fn accept_client(stream: TcpStream) -> io::Result<()> {
                     serde_json::from_str(jsoned.to_text().unwrap());
                 if let Ok(received_msg) = res {
                     let msg = received_msg.message;
+                    server_sender.send(PackedMessage { message: msg }).unwrap();
 
                     /* message example
                     {
