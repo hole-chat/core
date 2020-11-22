@@ -1,10 +1,73 @@
 mod chat;
+
+mod db;
 mod encrypting;
 use async_std::io;
 use chat::front_conn::listen_client;
 
+use std::{
+    sync::{
+        mpsc,
+        mpsc::{Receiver, Sender},
+    },
+    thread,
+};
 fn main() -> io::Result<()> {
-    listen_client()
+    //    listen_client();
+
+    enum ClientMessage {
+        Message(String),
+        Nope,
+    }
+    struct MFA{
+        encoded_msg: String
+            // TODO add User field
+    }; //Message from above
+
+
+    struct ClientHandler {
+        message: ClientMessage,
+    }
+
+    struct ServerHandler {
+        messages: Vec<MFA>
+    }
+
+    let (server_sender, server_receiver) : (Sender<ClientHandler>, Receiver<ClientHandler>) = mpsc::channel(); // server sender, server receiver
+    let (client_sender, client_receiver) :  (Sender<ServerHandler>, Receiver<ServerHandler>) = mpsc::channel(); // client sender, client receiver
+
+    let client_listener = thread::spawn(move || {
+            let a = server_receiver.recv();
+            let it_will_drop = match a.message {
+                ClientMessage::Message(m) => {
+                    println!("{}", &m);
+                    m
+                },
+                ClientMessage::Nope => String::from("fail!!"),
+            };
+            server_sender.send(ClientHandler{message: ClientMessage::Message(String::from("I come from frontend"))});
+    });
+
+    let server_listener = thread::spawn(move || loop {
+        let m1 = String::from("It's a encoded message from Jim");
+        let m2 = String::from("It's a encoded message from one killer, who trying to find you");
+
+        let mut fromabove =  ServerHandler{messages: vec![MFA(m1), MFA(m2)]};
+
+        for msg in fromabove.messages.iter() {
+            let msg = |MFA(lol)| ;
+
+        }
+
+        let mut a: ClientHandler = ClientHandler {
+            message: ClientMessage::Message(String::from("yup")),
+        }
+        let it_will_drop = match a.message {
+            ClientMessage::Message(m) => m,
+            ClientMessage::Nope => String::from("fail!!"),
+        };
+    });
+    Ok(())
 }
 /*
 fn main() {

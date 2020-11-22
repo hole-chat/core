@@ -1,5 +1,5 @@
-use crate::db;
 use crate::encrypting;
+use crate::db;
 use async_std::{
     io,
     net::{TcpListener, TcpStream},
@@ -24,7 +24,6 @@ async fn connect_to_client() -> io::Result<()> {
     while let Ok((stream, _)) = listener.accept().await {
         task::spawn(accept_client(stream));
     }
-    println!("Debugging 2!");
 
     Ok(())
 }
@@ -58,7 +57,7 @@ async fn accept_client(stream: TcpStream) -> io::Result<()> {
                 let res: serde_json::Result<FrontMsg> =
                     serde_json::from_str(jsoned.to_text().unwrap());
                 if let Ok(received_msg) = res {
-                    let msg = received_msg.message;
+                    let id = received_msg.receiverID;
 
                     /* message example
                     {
@@ -75,7 +74,7 @@ async fn accept_client(stream: TcpStream) -> io::Result<()> {
                         .expect("ooops");
                 } else {
                     println!("seems, that messsage formatted wrong");
-                    println!("{:?}", res);
+		    println!("{:?}", res);
                 }
 
                 new_msg = receiver.next();
