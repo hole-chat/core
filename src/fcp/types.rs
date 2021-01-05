@@ -1,9 +1,9 @@
 use async_trait::async_trait;
 use std::error::Error;
-use std::io;
-use std::io::prelude::*;
-use std::net::TcpStream;
-use std::net::{IpAddr, SocketAddr, TcpListener};
+use std::net::{IpAddr, SocketAddr};
+use tokio::io::{self, AsyncBufRead, AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpListener;
+use tokio::net::TcpStream;
 struct Fcp {
     connected: bool,
     stream: TcpStream,
@@ -14,15 +14,17 @@ struct Fcp {
 struct NodeHello {
     responce: String,
 }
+#[async_trait]
 trait FcpConnection {
-    fn new(addr: &'static str, port: u16, name: String) -> Result<Box<Self>, Box<dyn Error>>;
+    async fn new(addr: &'static str, port: u16, name: String) -> Result<Box<Self>, Box<dyn Error>>;
 }
 
+#[async_trait]
 impl FcpConnection for Fcp {
-    fn new(addr: &'static str, port: u16, name: String) -> Result<Box<Self>, Box<dyn Error>> {
+    async fn new(addr: &'static str, port: u16, name: String) -> Result<Box<Self>, Box<dyn Error>> {
         let socket = SocketAddr::new(IpAddr::V4(addr.parse().unwrap()), port);
 
-        match TcpStream::connect(&socket) {
+        match TcpStream::connect(&socket).await {
             Ok(mut stream) => Ok(Box::new(Fcp {
                 connected: true,
                 stream: stream,
@@ -33,31 +35,27 @@ impl FcpConnection for Fcp {
         }
     }
 }
-/*
-use futures::try_join;
-use tokio::io::{self, AsyncBufRead, AsyncReadExt};
-use tokio::net::TcpStream;
 
 #[async_trait]
 trait FCP {
-    async fn connect(&self) -> io::Result<()>;
+    async fn client_hello(&mut self) -> io::Result<NodeHello>;
 }
 #[async_trait]
 impl FCP for Fcp {
-    async fn connect(&self) -> io::Result<()> {
-        let stream = self.stream;
-        let _ =
-            stream.write(("ClientHello\nName=ggg\nExpectedVersion=2.0\nEndMessage\n\n").as_bytes());
+    async fn client_hello(&mut self) -> io::Result<NodeHello> {
+        let _ = self
+            .stream
+            .write_all(("ClientHello\nName=ggg\nExpectedVersion=2.0\nEndMessage\n\n").as_bytes());
 
         let mut buffer = String::new();
-        let smth = stream.read_to_string(&mut buffer).await?;
-        println!("{:?}", smth);
-
-        Ok(())
-        //     }
+        match self.stream.read_to_string(&mut buffer).await {
+            Ok(text) => Ok(NodeHello {
+                responce: text.to_string(),
+            }),
+            Err(e) => Err(e),
+        }
     }
 }
-*/
 
 /*
 // TODO add error if freenet not connected
