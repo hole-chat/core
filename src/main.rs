@@ -2,6 +2,7 @@ mod chat;
 
 mod db;
 mod encrypting;
+mod fcp;
 use async_std::io;
 use chat::front_conn::listen_client;
 use chat::types::PackedMessage;
@@ -14,7 +15,6 @@ use std::{
     thread,
 };
 /*
-
                         +-----------------------------------------------------------------------------------+
                         |                                  Client                                           |
                         |                                                                                   |
@@ -41,6 +41,7 @@ use std::{
                         |                                                                                   |
                         +-----------------------------------------------------------------------------------+
 */
+
 fn main() -> io::Result<()> {
     let (server_sender, server_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
         mpsc::channel();
@@ -63,6 +64,7 @@ fn main() -> io::Result<()> {
     client_thread.join();
     Ok(())
 }
+
 /*
 fn main() {
     let server = TcpListener::bind("127.0.0.1:9001").unwrap();
