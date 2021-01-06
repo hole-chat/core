@@ -1,12 +1,13 @@
 mod chat;
-
 mod db;
 mod encrypting;
-mod fcp;
+mod fcpv2;
 use async_std::io;
 use chat::front_conn::listen_client;
+//use chat::serv_conn::listen_server;
 use chat::types::PackedMessage;
 
+use async_std::task;
 use std::{
     sync::{
         mpsc,
@@ -49,9 +50,10 @@ fn main() -> io::Result<()> {
         mpsc::channel();
 
     let server_thread = thread::spawn(move || {
-        let cr = client_sender;
+        let cs = client_sender;
         let sr = server_receiver;
 
+        //thread::spawn(|| listen_server(cs));
         println!("Multithreadding YAY!!! {}", sr.recv().unwrap().message);
     });
     let client_thread = thread::spawn(move || {
@@ -59,6 +61,7 @@ fn main() -> io::Result<()> {
         let cr = client_receiver;
 
         thread::spawn(|| listen_client(ss));
+        //        println!("From Server Yaaay {}", cr.recv().unwrap().message);
     });
     server_thread.join();
     client_thread.join();

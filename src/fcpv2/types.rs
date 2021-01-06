@@ -4,6 +4,7 @@ use std::net::{IpAddr, SocketAddr};
 use tokio::io::{self, AsyncBufRead, AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 use tokio::net::TcpStream;
+#[derive(Debug)]
 struct Fcp {
     connected: bool,
     stream: TcpStream,
@@ -21,18 +22,16 @@ trait FcpConnection {
 
 #[async_trait]
 impl FcpConnection for Fcp {
-    async fn new(addr: &'static str, port: u16, name: String) -> Result<Box<Self>, Box<dyn Error>> {
+    async fn new(addr: &'static str, port: u16, name: String) -> Result<Box<Fcp>, Box<dyn Error>> {
         let socket = SocketAddr::new(IpAddr::V4(addr.parse().unwrap()), port);
 
-        match TcpStream::connect(&socket).await {
-            Ok(mut stream) => Ok(Box::new(Fcp {
-                connected: true,
-                stream: stream,
-                addr: socket,
-                name: name,
-            })),
-            Err(e) => Err(Box::new(e)),
-        }
+        let stream = TcpStream::connect(&socket).await?;
+        Ok(Box::new(Fcp {
+            connected: true,
+            stream: stream,
+            addr: socket,
+            name: name,
+        }))
     }
 }
 
@@ -55,6 +54,19 @@ impl FCP for Fcp {
             Err(e) => Err(e),
         }
     }
+}
+pub async fn test() -> io::Result<()> {
+    println!("WTFAAA");
+    /*
+    let fcp = Fcp::new("localhost", 9481, "lol".to_string())
+        .await
+        .unwrap();
+    println!("{:?}", fcp);
+    */
+    let stream = TcpStream::connect("127.0.0.1:9481").await?;
+    println!("WTF");
+
+    Ok(())
 }
 
 /*

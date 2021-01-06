@@ -1,6 +1,4 @@
 use crate::chat::types::PackedMessage;
-use crate::db;
-use crate::encrypting;
 use async_std::{
     io,
     net::{TcpListener, TcpStream},
@@ -72,8 +70,7 @@ async fn accept_client(stream: TcpStream, server_sender: SP) -> io::Result<()> {
                     "userID": 123456789,
                     "receiverID": 123456789,
                     "message": "hey dude",
-                    "time": "Tue Oct 13 2020 18:31:22 GMT+0300 (Eastern European Summer Time)",
-
+                    "time": "Tue Oct 13 2020 18:31:22 GMT+0300 (Eastern European Summer Time)"
                     }
                     */
                     sender
