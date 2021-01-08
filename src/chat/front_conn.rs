@@ -94,7 +94,7 @@ async fn accept_client(stream: TcpStream, server_sender: SP) -> io::Result<()> {
 
 pub fn responding_to_server(server_sender: SP, client_receiver: RP) -> io::Result<()> {
     while let Ok(res) = client_receiver.recv() {
-        println!("From SERVER!:\n {}", res.message);
+        println!("From Server!:\n {}", res.message);
     }
     Ok(())
 }
