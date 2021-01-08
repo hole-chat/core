@@ -8,9 +8,10 @@ use async_tungstenite::{accept_async, tungstenite::Message, WebSocketStream};
 use futures::{SinkExt, StreamExt};
 use serde_derive::Deserialize;
 use std::env;
-use std::sync::mpsc::Sender;
+use std::sync::mpsc::{Receiver, Sender};
 
 type SP = Sender<PackedMessage>;
+type RP = Receiver<PackedMessage>;
 
 pub fn listen_client(server_sender: SP) -> io::Result<()> {
     task::block_on(connect_to_client(server_sender))
@@ -23,12 +24,10 @@ async fn connect_to_client(server_sender: SP) -> io::Result<()> {
 
     let listener = TcpListener::bind(&addr).await?;
 
-    println!("Debugging!");
     while let Ok((stream, _)) = listener.accept().await {
         let ss = server_sender.clone();
         task::spawn(accept_client(stream, ss));
     }
-    println!("Debugging 2!");
 
     Ok(())
 }
@@ -90,5 +89,12 @@ async fn accept_client(stream: TcpStream, server_sender: SP) -> io::Result<()> {
         }
     }
 
+    Ok(())
+}
+
+pub fn responding_to_server(server_sender: SP, client_receiver: RP) -> io::Result<()> {
+    while let Ok(res) = client_receiver.recv() {
+        println!("From SERVER!:\n {}", res.message);
+    }
     Ok(())
 }

@@ -3,8 +3,8 @@ mod db;
 mod encrypting;
 mod fcpv2;
 use async_std::io;
-use chat::front_conn::listen_client;
-use chat::serv_conn::listen_server;
+use chat::front_conn::{listen_client, responding_to_server};
+use chat::serv_conn::{listen_server, responding_to_client};
 use chat::types::PackedMessage;
 
 use async_std::task;
@@ -44,7 +44,7 @@ use std::{
 */
 
 fn main() -> io::Result<()> {
-    let (server_sender, server_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
+    let (to_server_sender, server_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
         mpsc::channel();
     let (client_sender, client_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
         mpsc::channel();
@@ -52,16 +52,29 @@ fn main() -> io::Result<()> {
     let server_thread = thread::spawn(move || {
         let cs = client_sender;
         let sr = server_receiver;
+        let cs1 = cs.clone();
+        let cs2 = cs.clone();
 
-        thread::spawn(|| listen_server(cs));
-        println!("Multithreadding YAY!!! {}", sr.recv().unwrap().message);
+        let t1 = thread::spawn(move || listen_server(cs1));
+        let t2 = thread::spawn(move || responding_to_client(cs2, sr));
+
+        t1.join();
+        t2.join();
+        // while let Ok(res) = sr.recv() {
+        //     println!("From Server:\n {}", res.message);
+        // }
     });
     let client_thread = thread::spawn(move || {
-        let ss = server_sender;
+        let ss = to_server_sender;
         let cr = client_receiver;
+        let ss1 = ss.clone();
+        let ss2 = ss.clone();
 
-        thread::spawn(|| listen_client(ss));
-        println!("From Server Yaaay {}", cr.recv().unwrap().message);
+        let t1 = thread::spawn(move || listen_client(ss1.clone()));
+        let t2 = thread::spawn(move || responding_to_server(ss2.clone(), cr));
+
+        t1.join();
+        t2.join();
     });
     server_thread.join();
     client_thread.join();
