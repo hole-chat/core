@@ -3,7 +3,7 @@ mod db;
 mod encrypting;
 mod fcpv2;
 use async_std::io;
-use chat::front_conn::{listen_client, responding_to_server};
+use chat::front_conn::listen_client;
 use chat::serv_conn::{listen_server, responding_to_client};
 use chat::types::PackedMessage;
 
@@ -33,7 +33,7 @@ use std::{
 |              |        |     |  +----------------------+  |          | +-----------------------------+ |   |        |                   |
 |              |        |     |  |                      |  |          | |                             | |   |        |                   |
 |              |        |     |  |       Encode         |  |          | |                             | |   |        |                   |
-|       <-----------------------------        <-----------------------------       from JSON <--------------------------------           |
+|              |        |     |  |            <-----------------------------       from JSON <--------------------------------           |
 |              |        |     |  |                      |  |          | |                             | |   |        |                   |
 |              |        |     |  +----------------------+  |          | +-----------------------------+ |   |        |                   |
 +--------------+        |     |                            |          |                                 |   |        |                   |
@@ -67,14 +67,10 @@ fn main() -> io::Result<()> {
     let client_thread = thread::spawn(move || {
         let ss = to_server_sender;
         let cr = client_receiver;
-        let ss1 = ss.clone();
-        let ss2 = ss.clone();
 
-        let t1 = thread::spawn(move || listen_client(ss1.clone()));
-        let t2 = thread::spawn(move || responding_to_server(ss2.clone(), cr));
+        let t1 = thread::spawn(move || listen_client(ss, cr));
 
         t1.join();
-        t2.join();
     });
     server_thread.join();
     client_thread.join();
