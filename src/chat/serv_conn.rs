@@ -6,7 +6,10 @@ use std::env;
 use std::sync::mpsc::{Receiver, Sender};
 use tokio::{
     io::{self, AsyncReadExt, AsyncWriteExt},
-    net::{TcpStream, tcp::{OwnedReadHalf, OwnedWriteHalf}}
+    net::{
+        tcp::{OwnedReadHalf, OwnedWriteHalf},
+        TcpStream,
+    },
 };
 
 type SP = Sender<PackedMessage>;
@@ -28,13 +31,12 @@ async fn connect_to_server(client_sender: SP, server_receiver: RP) -> io::Result
     to_server_sender(sender, server_receiver).await?;
     match t.await {
         Ok(_) => Ok(()),
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
-
 }
-async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) -> io::Result<()>{
+async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) -> io::Result<()> {
     println!("Running");
-loop {
+    loop {
         let mut buffer = [0; 512];
         match receiver.read(&mut buffer).await {
             Ok(_) => {
@@ -52,16 +54,25 @@ loop {
     //TODO HANDLE ERROR
     Ok(())
 }
-async fn to_server_sender(mut sender:OwnedWriteHalf, server_receiver: RP) -> io::Result<()>{
-
-    while let Ok(res) = server_receiver.recv(){
-
-        println!("{}", res.message);
-        println!("ALIVE\nALIVE\nALIVE\nALIVE\n");
-    let _ = sender
-        .write(("ClientHello\nName=ggg\nExpectedVersion=2.0\nEndMessage\n\n").as_bytes())
-        .await?;
-        println!("SENDED\nSENDED\nSENDED\nSENDED\n");
+async fn to_server_sender(mut sender: OwnedWriteHalf, server_receiver: RP) -> io::Result<()> {
+    while let Ok(res) = server_receiver.recv() {
+        if res.message == "STARTAPP!" {
+            let _ = sender
+                .write(("ClientHello\nName=ggg\nExpectedVersion=2.0\nEndMessage\n\n").as_bytes())
+                .await?;
+        } else if res.message.lines().next() == Some("ClientGet") {
+            let _ = sender.write(res.message.as_bytes()).await?;
+        } else {
+            //println!("{:?}", res.message);
+            let _  = sender.write(
+                format!(
+                    "ClientPut\nIdentifier=hello\nURI=KSK@msg23.txt\nDataLength={}\nUploadFrom=direct\nEndMessage\n{}\n\n",
+                    res.message.len(),
+                    res.message
+                )
+                .as_bytes(),
+            ).await;
+        }
     }
 
     Ok(())
@@ -74,4 +85,3 @@ struct FrontMsg {
     message: String,
     time: String,
 }
-

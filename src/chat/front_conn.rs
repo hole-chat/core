@@ -28,6 +28,27 @@ pub fn listen_client(server_sender: SP, to_client_receiver: RP) -> io::Result<()
     task::block_on(connect_to_client(server_sender, to_client_receiver))
 }
 
+async fn request_repeater(ss: SP) -> io::Result<()> {
+    loop {
+        let time = std::time::Duration::from_millis(1000);
+        std::thread::sleep(time);
+        println!("sleep1");
+        match ss.send(PackedMessage {
+            message: format!(
+                "ClientGet\n\
+                     URI=KSK@msg23.txt\n\
+                     Identifier=doesnt_matter?\n\
+                     Verbosity=0\n\
+                     ReturnType=direct\n\
+                     EndMessage\n\n"
+            ),
+        }) {
+            Ok(_) => {}
+            Err(e) => println!("{:?}", e),
+        }
+    }
+}
+
 async fn connect_to_client(server_sender: SP, to_client_receiver: RP) -> io::Result<()> {
     let addr = env::args()
         .nth(1)
@@ -35,6 +56,7 @@ async fn connect_to_client(server_sender: SP, to_client_receiver: RP) -> io::Res
 
     let listener = TcpListener::bind(&addr).await?;
 
+    let client_repeater = server_sender.clone();
     if let Ok((stream, _)) = listener.accept().await {
         let addr = stream
             .peer_addr()
@@ -48,7 +70,7 @@ async fn connect_to_client(server_sender: SP, to_client_receiver: RP) -> io::Res
         println!("connected to: {}", addr);
 
         let t1 = task::spawn(connection_for_sending(receiver, server_sender));
-        connection_for_receiving(sender, to_client_receiver).await?;
+        connection_for_receiving(sender, to_client_receiver, client_repeater).await?;
         t1.await?;
     }
 
@@ -58,9 +80,16 @@ async fn connect_to_client(server_sender: SP, to_client_receiver: RP) -> io::Res
 async fn connection_for_receiving(
     mut sender: SplitSink<WebSocketStream<TcpStream>, Message>,
     to_client_receiver: RP,
+    client_repeater: SP,
 ) -> io::Result<()> {
     while let Ok(res) = to_client_receiver.recv() {
-        println!("HEYNEHHEFSJDHFKLSDJ \n {}", res.message);
+        //TODO call client get after receiving NodeHello
+        if res.message.lines().next() == Some("NodeHello") {
+            let client_repeater = client_repeater.clone();
+            task::spawn(request_repeater(client_repeater)).await?;
+            println!("HEY NODE HELLO \n {}", res.message);
+        }
+
         sender
             .send(Message::Text(String::from(res.message).to_owned()))
             .await
@@ -86,8 +115,8 @@ async fn connection_for_sending(
 
                 /* message example
                 {
-                "userID": 123456789,
-                "receiverID": 123456789,
+                "user_id": 123456789,
+                "receiver_id": 123456789,
                 "message": "hey dude",
                 "time": "Tue Oct 13 2020 18:31:22 GMT+0300 (Eastern European Summer Time)"
                 }
