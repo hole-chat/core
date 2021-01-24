@@ -35,7 +35,6 @@ async fn connect_to_server(client_sender: SP, server_receiver: RP) -> io::Result
     }
 }
 async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) -> io::Result<()> {
-    println!("Running");
     loop {
         let mut buffer = [0; 512];
         match receiver.read(&mut buffer).await {
@@ -51,11 +50,11 @@ async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) 
             Err(e) => println!("Error: {} ", e),
         }
     }
-    //TODO HANDLE ERROR
     Ok(())
 }
 async fn to_server_sender(mut sender: OwnedWriteHalf, server_receiver: RP) -> io::Result<()> {
     while let Ok(res) = server_receiver.recv() {
+        //TODO from_core_to_server_handler
         if res.message == "STARTAPP!" {
             let _ = sender
                 .write(("ClientHello\nName=ggg\nExpectedVersion=2.0\nEndMessage\n\n").as_bytes())

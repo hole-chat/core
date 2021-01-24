@@ -45,78 +45,28 @@ use std::{
 fn main() -> io::Result<()> {
     let (to_server_sender, server_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
         mpsc::channel();
+
     let (client_sender, client_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
         mpsc::channel();
 
     let server_thread = thread::spawn(move || {
         let cs = client_sender;
         let sr = server_receiver;
-        // let cs1 = cs.clone();
-        // let cs2 = cs.clone();
 
-        let t1 = thread::spawn(move || listen_server(cs, sr));
-        // let t2 = thread::spawn(move || responding_to_client(cs2, sr));
+        let t = thread::spawn(move || listen_server(cs, sr));
 
-        t1.join().expect("failed server thread").unwrap();
-        // t2.join();
-        // while let Ok(res) = sr.recv() {
-        //     println!("From Server:\n {}", res.message);
-        // }
+        t.join().expect("failed server thread").unwrap();
     });
+
     let client_thread = thread::spawn(move || {
         let ss = to_server_sender;
         let cr = client_receiver;
 
-        let t1 = thread::spawn(move || listen_client(ss, cr));
+        let t = thread::spawn(move || listen_client(ss, cr));
 
-        t1.join().expect("failed client thread").unwrap();
+        t.join().expect("failed client thread").unwrap();
     });
     server_thread.join().unwrap();
     client_thread.join().unwrap();
     Ok(())
 }
-
-/*
-fn main() {
-    let server = TcpListener::bind("127.0.0.1:9001").unwrap();
-    println!("{:?}", &server);
-    for stream in server.incoming() {
-        spawn(move || {
-            println!("{:?}", &stream);
-            let mut websocket: WebSocket<std::net::TcpStream> = accept(stream.unwrap()).unwrap();
-            loop {
-                let msg = websocket.read_message().unwrap();
-
-                // We do not want to send back ping/pong messages.
-                if msg.is_binary() || msg.is_text() {
-                    websocket.write_message(msg).unwrap();
-                }
-            }
-        });
-    }
-}*/
-/*
-        let (one, two) = keys;
-
-        let value =String::from_utf8_lossy(&*one);
-        let strVal = String::from(value);
-        let newbytes = strVal.into_bytes();
-        print!("{:?}", newbytes);
-
-        let newkey = PrivateKey::import(newbytes);
-
-        Let conn = Connection::open("myfile.db").unwrap();
-
-        conn.execute("CREATE TABLE person (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            email TEXT NOT NULL
-        )", NO_PARAMS).unwrap();
-        let name: String = "Steve Example".to_string();
-        let email: String = "steve@example.org".to_string();
-        conn.execute("INSERT INTO person (name, email) VALUES (?1, ?2)",
-        &[&name, &email]).unwrap();
-
-}
-    */
-//let mut std = cli::cli_base::get_stdin();
