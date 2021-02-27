@@ -1,3 +1,4 @@
+use std::sync::mpsc::{Receiver, Sender};
 //type Decoded = String;
 //type Encoded = String;
 
@@ -34,3 +35,6 @@
 pub struct PackedMessage {
     pub message: String,
 }
+
+pub type SP = Sender<PackedMessage>;
+pub type RP = Receiver<PackedMessage>;

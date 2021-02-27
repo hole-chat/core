@@ -1,19 +1,12 @@
-use crate::chat::types::PackedMessage;
-use crate::fcpv2;
+use super::serv_handler::to_server_sender;
+use crate::chat::types::{PackedMessage, RP, SP};
 use async_std::task;
 use serde_derive::Deserialize;
 use std::env;
-use std::sync::mpsc::{Receiver, Sender};
 use tokio::{
-    io::{self, AsyncReadExt, AsyncWriteExt},
-    net::{
-        tcp::{OwnedReadHalf, OwnedWriteHalf},
-        TcpStream,
-    },
+    io::{self, AsyncReadExt},
+    net::{tcp::OwnedReadHalf, TcpStream},
 };
-
-type SP = Sender<PackedMessage>;
-type RP = Receiver<PackedMessage>;
 
 #[tokio::main]
 pub async fn listen_server(client_sender: SP, server_receiver: RP) -> io::Result<()> {
@@ -26,7 +19,7 @@ async fn connect_to_server(client_sender: SP, server_receiver: RP) -> io::Result
         .unwrap_or_else(|| "127.0.0.1:9481".to_string());
 
     let stream = TcpStream::connect(&addr).await.expect("weeror here");
-    let (mut receiver, mut sender) = stream.into_split();
+    let (receiver, sender) = stream.into_split();
     let t = task::spawn(server_responce_getter(receiver, client_sender));
     to_server_sender(sender, server_receiver).await?;
     match t.await {
@@ -50,31 +43,6 @@ async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) 
             Err(e) => println!("Error: {} ", e),
         }
     }
-    Ok(())
-}
-async fn to_server_sender(mut sender: OwnedWriteHalf, server_receiver: RP) -> io::Result<()> {
-    while let Ok(res) = server_receiver.recv() {
-        //TODO from_core_to_server_handler
-        if res.message == "STARTAPP!" {
-            let _ = sender
-                .write(("ClientHello\nName=ggg\nExpectedVersion=2.0\nEndMessage\n\n").as_bytes())
-                .await?;
-        } else if res.message.lines().next() == Some("ClientGet") {
-            let _ = sender.write(res.message.as_bytes()).await?;
-        } else {
-            //println!("{:?}", res.message);
-            let _  = sender.write(
-                format!(
-                    "ClientPut\nIdentifier=hello\nURI=KSK@msg23.txt\nDataLength={}\nUploadFrom=direct\nEndMessage\n{}\n\n",
-                    res.message.len(),
-                    res.message
-                )
-                .as_bytes(),
-            ).await;
-        }
-    }
-
-    Ok(())
 }
 
 #[derive(Deserialize, Debug)]

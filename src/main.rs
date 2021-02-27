@@ -43,6 +43,8 @@ use std::{
 */
 
 fn main() -> io::Result<()> {
+    db::start_db().unwrap();
+
     let (to_server_sender, server_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
         mpsc::channel();
 

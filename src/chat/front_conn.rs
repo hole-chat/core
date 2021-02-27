@@ -1,4 +1,5 @@
 use crate::chat::types::PackedMessage;
+use crate::db;
 use async_std::{
     io,
     net::{TcpListener, TcpStream},
@@ -12,6 +13,8 @@ use futures::{
 use serde_derive::Deserialize;
 use std::env;
 use std::sync::mpsc::{Receiver, Sender};
+
+use super::stay_awake::request_repeater;
 
 type SP = Sender<PackedMessage>;
 type RP = Receiver<PackedMessage>;
@@ -28,25 +31,6 @@ pub fn listen_client(server_sender: SP, client_receiver: RP) -> io::Result<()> {
     task::block_on(connect_to_client(server_sender, client_receiver))
 }
 
-async fn request_repeater(ss: SP) -> io::Result<()> {
-    loop {
-        let time = std::time::Duration::from_millis(1000);
-        std::thread::sleep(time);
-        match ss.send(PackedMessage {
-            message: format!(
-                "ClientGet\n\
-                 URI=KSK@msg23.txt\n\
-                 Identifier=doesnt_matter?\n\
-                 Verbosity=0\n\
-                 ReturnType=direct\n\
-                 EndMessage\n\n"
-            ),
-        }) {
-            Ok(_) => {}
-            Err(e) => println!("{:?}", e),
-        }
-    }
-}
 
 async fn connect_to_client(server_sender: SP, client_receiver: RP) -> io::Result<()> {
     let addr = env::args()
@@ -110,6 +94,8 @@ async fn connection_for_sending(
                     serde_json::from_str(jsoned.to_text().unwrap());
                 if let Ok(received_msg) = res {
                     let msg = received_msg.message;
+                    db::start_db().unwrap();
+
                     server_sender.send(PackedMessage { message: msg }).unwrap();
                 /* message example
                 {
