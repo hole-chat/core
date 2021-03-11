@@ -6,7 +6,7 @@ use async_std::io;
 use chat::front_conn::listen_client;
 use chat::serv_conn::listen_server;
 use chat::types::PackedMessage;
-
+use log;
 use std::{
     sync::{
         mpsc,
@@ -14,6 +14,7 @@ use std::{
     },
     thread,
 };
+use simple_logger::SimpleLogger;
 /*
                         +-----------------------------------------------------------------------------------+
                         |                                  Client                                           |
@@ -43,6 +44,7 @@ use std::{
 */
 
 fn main() -> io::Result<()> {
+    SimpleLogger::new().init().unwrap();
     db::start_db().unwrap();
 
     let (to_server_sender, server_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
