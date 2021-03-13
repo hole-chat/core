@@ -1,7 +1,7 @@
 use crate::chat::types::PackedMessage;
 use async_std::io;
-use fcpv2::client::fcp_types::{ClientGet, SSK};
-use fcpv2::client::types::{FcpRequest, ReturnType};
+use fcpv2::client::fcp_types::{ClientGet};
+use fcpv2::types::{traits::FcpRequest, ReturnType, SSK};
 use std::sync::mpsc::Sender;
 
 type SP = Sender<PackedMessage>;

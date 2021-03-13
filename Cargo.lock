@@ -408,9 +408,10 @@ dependencies = [
 
 [[package]]
 name = "fcpv2"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "regex",
+ "rusqlite",
 ]
 
 [[package]]
@@ -630,6 +631,7 @@ dependencies = [
  "async-tls 0.10.0",
  "async-trait",
  "async-tungstenite",
+ "chrono",
  "fcpv2",
  "futures",
  "futures-util",

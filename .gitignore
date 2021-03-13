@@ -1,4 +1,6 @@
 /target
 ./hole.db
-hole.db
-*.db
+/hole.db
+/*.db
+
+
