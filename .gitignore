@@ -3,5 +3,8 @@
 /hole.db
 /*.db
 /.hole.toml
+/.cargo
+/.idea
+/.vscode
 
 
