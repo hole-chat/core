@@ -2,5 +2,6 @@
 ./hole.db
 /hole.db
 /*.db
+/.hole.toml
 
 
