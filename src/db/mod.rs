@@ -23,6 +23,7 @@ fn create_db(conn: &Connection) -> Result<()> {
         "CREATE TABLE messages (
                   id                      INTEGER PRIMARY KEY,
                   user_id                 TEXT NOT NULL,
+                  date                    datetime NOT NULL,
                   message                 TEXT NOT NULL
                   )",
         params![],

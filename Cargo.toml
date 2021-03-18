@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 ntru = "0.5.6"
-rusqlite = "0.24.2"
+rusqlite = {version = "0.24.2", features = ["chrono"]}
 toml = "0.5.6"
 tungstenite = "0.12.0"
 tokio = { version = "0.3.3", features = ["full"] }

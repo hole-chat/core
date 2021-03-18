@@ -4,16 +4,23 @@ use fcpv2::types::{SSK, traits::FcpParser};
 use rusqlite::{params, Connection, Result, NO_PARAMS};
 
 pub fn get_user_by_id(id: u32, conn: &Connection) -> Result<User> {
-    unimplemented!();
-}
-
-pub fn get_user_by_name(String: u32, conn: &Connection) -> Result<User> {
-    unimplemented!();
+    let mut selected = conn.prepare("SELECT * FROM users WHERE id = ?")?;
+    let mut user_iter = selected.query_map(params![id], |row| {
+        Ok(User {
+            id: row.get(0)?,
+            name: row.get(1)?,
+            sign_key: row.get(2)?,
+            insert_key: row.get(3)?,
+            messages_count: row.get(4)?,
+        })
+    })?;
+    let user = user_iter.next().unwrap();
+    log::info!("User {:} founded", id);
+    user
 }
 
 pub fn load_all_users(conn: &Connection) -> Result<Vec<User>> {
     let mut selected = conn.prepare("SELECT * FROM users")?;
-    log::info!("add user to USERS successfully!");
     let user_iter = selected.query_map(params![], |row| {
         Ok(User {
             id: row.get(0)?,
@@ -28,6 +35,7 @@ pub fn load_all_users(conn: &Connection) -> Result<Vec<User>> {
         log::info!("User: {:?}", (&user));
         users.push(user?);
     }
+    log::info!("All users loaded to memory");
     Ok(users)
 }
 
