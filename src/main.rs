@@ -48,6 +48,7 @@ use std::{
 fn main() -> io::Result<()> {
     SimpleLogger::new().init().unwrap();
     let conn = db::start_db().unwrap();
+    /*
     users::add_user(db::types::User{
         id: 9349,
         name: "Nick".to_string(),
@@ -60,9 +61,9 @@ fn main() -> io::Result<()> {
     db::messages::add_message(
         db::types::Message {
             user_id: 9349,
-            id: 1,
+            id: 4,
             date: time.naive_utc(),
-            message: "hey duude".to_string(),
+            message: "HI?".to_string(),
         },
         &conn,
     )
@@ -70,9 +71,9 @@ fn main() -> io::Result<()> {
     db::messages::add_message(
         db::types::Message {
             user_id: 9349,
-            id: 2,
+            id: 5,
             date: time.naive_utc(),
-            message: "what do you think".to_string(),
+            message: "I AM NICK!".to_string(),
         },
         &conn,
     )
@@ -80,13 +81,16 @@ fn main() -> io::Result<()> {
     db::messages::add_message(
         db::types::Message {
             user_id: 9349,
-            id: 3,
+            id: 6,
             date: time.naive_utc(),
-            message: "about that".to_string(),
+            message: "I'LL FIND that".to_string(),
         },
         &conn,
     )
     .unwrap();
+
+    let messages = db::messages::select_message_by_id(9349, 3, &conn).unwrap();
+   */ 
 
     let (to_server_sender, server_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
         mpsc::channel();
