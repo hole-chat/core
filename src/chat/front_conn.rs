@@ -16,8 +16,9 @@ use std::sync::mpsc::{Receiver, Sender};
 
 use super::stay_awake::request_repeater;
 
-type SP = Sender<PackedMessage>;
-type RP = Receiver<PackedMessage>;
+use super::types::{RP, SP};
+
+use crate::api::handlers::request_handler;
 
 #[derive(Deserialize, Debug)]
 struct FrontMsg {
@@ -27,12 +28,19 @@ struct FrontMsg {
     time: String,
 }
 
-pub fn listen_client(server_sender: SP, client_receiver: RP) -> io::Result<()> {
-    task::block_on(connect_to_client(server_sender, client_receiver))
+pub fn listen_client(
+    server_sender: SP,
+    client_receiver: RP,
+    conn: rusqlite::Connection,
+) -> io::Result<()> {
+    task::block_on(connect_to_client(server_sender, client_receiver, conn))
 }
 
-
-async fn connect_to_client(server_sender: SP, client_receiver: RP) -> io::Result<()> {
+async fn connect_to_client(
+    server_sender: SP,
+    client_receiver: RP,
+    conn: rusqlite::Connection,
+) -> io::Result<()> {
     let addr = env::args()
         .nth(1)
         .unwrap_or_else(|| "127.0.0.1:5948".to_string());
@@ -53,7 +61,7 @@ async fn connect_to_client(server_sender: SP, client_receiver: RP) -> io::Result
         log::info!("connected to: {}", addr);
         let (sender, receiver) = ws.split();
 
-        let t1 = task::spawn(connection_for_sending(receiver, server_sender));
+        let t1 = task::spawn(connection_for_sending(receiver, server_sender, conn));
         connection_for_receiving(sender, client_receiver, client_repeater).await?;
         t1.await?;
     }
@@ -86,23 +94,23 @@ async fn connection_for_receiving(
 async fn connection_for_sending(
     mut receiver: SplitStream<WebSocketStream<TcpStream>>,
     server_sender: SP,
+    conn: rusqlite::Connection,
 ) -> io::Result<()> {
     log::info!("Connection for sending launched");
     let mut new_msg = receiver.next();
     loop {
-        match new_msg.await {
-            Some(msg) => {
-                let jsoned = msg.expect("Falied to unwrap gotted message");
-                log::info!("The message is: {:?}", &jsoned);
-                //TODO handle_request(jsoned, server_sender,);
-                let res: serde_json::Result<FrontMsg> =
-                    serde_json::from_str(jsoned.to_text().expect("Falied to parse JSON"));
-                if let Ok(received_msg) = res {
-                    let msg = received_msg.message;
-                    //db::start_db().expect("Failed to start db");
+        if let Some(msg) = new_msg.await {
+            let jsoned = msg.expect("Falied to unwrap gotted message");
+            request_handler(jsoned.to_string(), &server_sender, &conn);
+            /*
+            let res: serde_json::Result<FrontMsg> =
+                serde_json::from_str(jsoned.to_text().expect("Falied to parse JSON"));
+            if let Ok(received_msg) = res {
+                let msg = received_msg.message;
+                //db::start_db().expect("Failed to start db");
 
-                    server_sender.send(PackedMessage { message: msg }).expect("Falied to send message");
-                /* message example
+                ss.send(PackedMessage { message: msg }).expect("Falied to send message");
+            /* message example
                 {
                 "user_id": 123456789,
                 "receiver_id": 123456789,
@@ -110,14 +118,15 @@ async fn connection_for_sending(
                 "time": "Tue Oct 13 2020 18:31:22 GMT+0300 (Eastern European Summer Time)"
                 }
                      */
-                } else {
-                    log::info!("seems, that messsage formatted wrong");
-                    log::info!("{:?}", res);
-                }
-
-                new_msg = receiver.next();
+            } else {
+                log::info!("seems, that messsage formatted wrong");
+                log::info!("{:?}", res);
             }
-            None => {
+            */
+
+            new_msg = receiver.next();
+        } else {
+            {
                 break;
             }
         }

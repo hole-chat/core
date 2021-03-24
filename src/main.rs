@@ -49,7 +49,7 @@ use std::{
 fn main() -> io::Result<()> {
     SimpleLogger::new().init().unwrap();
 
-    let db = db::start_db();
+    let db = db::start_db().unwrap();
 
     let (to_server_sender, server_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
         mpsc::channel();
@@ -70,7 +70,7 @@ fn main() -> io::Result<()> {
         let ss = to_server_sender;
         let cr = client_receiver;
 
-        let t = thread::spawn(move || listen_client(ss, cr));
+        let t = thread::spawn(move || listen_client(ss, cr, db));
 
         t.join().expect("failed client thread").unwrap();
     });
