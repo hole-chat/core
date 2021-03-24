@@ -25,7 +25,7 @@ pub async fn request_repeater(ss: SP) -> io::Result<()> {
             // ),
         }) {
             Ok(_) => {}
-            Err(e) => println!("{:?}", e),
+            Err(e) => log::error!("{:?}", e),
         }
     }
 }

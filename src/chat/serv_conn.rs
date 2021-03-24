@@ -33,14 +33,15 @@ async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) 
         match receiver.read(&mut buffer).await {
             Ok(_) => {
                 let received = String::from_utf8_lossy(&buffer[..]);
-                println!("received {}", received);
+                log::info!("received {}", received);
                 client_sender
                     .send(PackedMessage {
                         message: received.to_string(),
                     })
-                    .unwrap();
+                    .expect("Falied to send message to client thread");
+                log::info!("Sended to client!");
             }
-            Err(e) => println!("Error: {} ", e),
+            Err(e) => log::error!("Error: {} ", e),
         }
     }
 }

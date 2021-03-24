@@ -19,7 +19,7 @@ pub async fn to_server_sender(mut sender: OwnedWriteHalf, server_receiver: RP) -
         } else if res.message.lines().next() == Some("ClientGet") {
             let _ = sender.write(res.message.as_bytes()).await?;
         } else {
-            //println!("{:?}", res.message);
+            //log::info!("{:?}", res.message);
             let key = SSK::parse("KSK@msg23.txt").unwrap();
             let cp = ClientPut::new_default(key, "msg23.txt", "hello", &res.message[..]).convert();
             let _ = sender.write(cp.as_bytes()).await;

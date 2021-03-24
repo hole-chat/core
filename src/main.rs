@@ -1,6 +1,7 @@
 mod chat;
 mod db;
 mod encrypting;
+mod api;
 use async_std::io;
 use chat::front_conn::listen_client;
 use chat::serv_conn::listen_server;
@@ -47,50 +48,8 @@ use std::{
 
 fn main() -> io::Result<()> {
     SimpleLogger::new().init().unwrap();
-    let conn = db::start_db().unwrap();
-    /*
-    users::add_user(db::types::User{
-        id: 9349,
-        name: "Nick".to_string(),
-        sign_key: "string".to_string(),
-        insert_key: fcpv2::types::SSK::parse("SSK@Rgt0qM8D24DltliV2-JE9tYLcrgGAKeDwkz41I3JBPs,p~c8c7FXcJjhcf2vA-Xm0Mjyw1o~xn7L2-T8zlBA1IU").unwrap(),
-        messages_count: 1,
-    }, &conn);
-    let time: chrono::DateTime<chrono::offset::FixedOffset> =
-        chrono::DateTime::parse_from_rfc3339("2021-03-18T04:22:42.501Z").unwrap();
-    db::messages::add_message(
-        db::types::Message {
-            user_id: 9349,
-            id: 4,
-            date: time.naive_utc(),
-            message: "HI?".to_string(),
-        },
-        &conn,
-    )
-    .unwrap();
-    db::messages::add_message(
-        db::types::Message {
-            user_id: 9349,
-            id: 5,
-            date: time.naive_utc(),
-            message: "I AM NICK!".to_string(),
-        },
-        &conn,
-    )
-    .unwrap();
-    db::messages::add_message(
-        db::types::Message {
-            user_id: 9349,
-            id: 6,
-            date: time.naive_utc(),
-            message: "I'LL FIND that".to_string(),
-        },
-        &conn,
-    )
-    .unwrap();
 
-    let messages = db::messages::select_message_by_id(9349, 3, &conn).unwrap();
-   */ 
+    let db = db::start_db();
 
     let (to_server_sender, server_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
         mpsc::channel();
@@ -115,7 +74,7 @@ fn main() -> io::Result<()> {
 
         t.join().expect("failed client thread").unwrap();
     });
-    server_thread.join().unwrap();
-    client_thread.join().unwrap();
+    server_thread.join().expect("failed to unrap server thread");
+    client_thread.join().expect("failed to unrap client thread");
     Ok(())
 }
