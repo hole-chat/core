@@ -1,63 +1,67 @@
 use fcpv2::types::SSK;
-use serde_json::Result;
 use serde_derive::{Deserialize, Serialize};
+use serde_json::Result;
 
-#[derive(Serialize, Deserialize)]
-pub struct Address {
-    street: String,
-    city: String,
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct CreateInstance;
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct SendMessage;
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct LoadUsers;
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct LoadMessages;
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct AddUser;
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct StartApp;
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct StopApp;
+
+#[derive(Deserialize, Debug)]
+pub struct CreateInstanceReq {
+    pub req_type: CreateInstance,
+    pub name: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub enum RequestType {
-    CreateInstance,
-    StartApp,
-    StopApp,
-    SendMessage,
-    LoadUsers,
-    LoadMessages,
-    AddUser,
+#[derive(Deserialize, Debug, PartialEq)]
+pub struct StartAppReq {
+    pub req_type: StartApp,
+}
+
+#[derive(Deserialize, Debug, PartialEq)]
+pub struct StopAppReq {
+    pub(crate) req_type: StopApp,
 }
 
 #[derive(Deserialize, Debug)]
-struct CreateInstance {
-    req_type: RequestType,
-    name: String,
+pub struct LoadUsersReq {
+    pub req_type: LoadUsers,
 }
 
 #[derive(Deserialize, Debug)]
-struct StartApp {
-    req_type: RequestType,
+pub struct SendMessageReq {
+    pub req_type: SendMessage,
+    pub user_id: u32,
+    pub message: String,
 }
 
 #[derive(Deserialize, Debug)]
-struct StopApp {
-    req_type: RequestType,
-}
-#[derive(Deserialize, Debug)]
-struct SendMessage {
-    req_type: RequestType,
-    user_id: u32,
-    message: String,
-}
-#[derive(Deserialize, Debug)]
-struct LoadUsers {
-    req_type: RequestType,
+pub struct LoadMessagesReq {
+    pub req_type: LoadMessages,
+    pub user_id: u32,
+    pub count: u8,
+    pub start_index: u8,
 }
 
 #[derive(Deserialize, Debug)]
-struct LoadMessages {
-    req_type: RequestType,
-    user_id: u32,
-    count: u8,
-    start_index: u8,
+pub struct AddUserReq {
+    pub req_type: AddUser,
+    pub sign_key: String,
+    pub insert_key: String,
 }
-
-
-#[derive(Deserialize, Debug)]
-struct AddUser {
-    req_type: RequestType,
-    sign_key: String,
-    insert_key: String,
-}
-
