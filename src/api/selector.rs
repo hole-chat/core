@@ -17,6 +17,7 @@ pub async fn request_selector(json: String, server_sender: &SP, conn: &Connectio
     }
     if let Ok(res) = from_str::<StopAppReq>(&json) {
         handlers::stop_app(res, conn, server_sender)?
+
     }
     if let Ok(res) = from_str::<LoadUsersReq>(&json) {
         handlers::load_users(res, conn, server_sender)?

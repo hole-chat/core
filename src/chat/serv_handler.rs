@@ -9,7 +9,7 @@ use tokio::{
 
 use fcpv2::client::fcp_types::{ClientHello, ClientPut};
 use fcpv2::types::{traits::{FcpRequest, FcpParser}, SSK} ;
-pub async fn to_server_sender(mut sender: OwnedWriteHalf, server_receiver: RP) -> io::Result<()> {
+pub async fn to_server_sender(mut sender: OwnedWriteHalf, server_receiver: RP, client_sender: SP) -> io::Result<()> {
     while let Ok(res) = server_receiver.recv() {
         //TODO from_core_to_server_handler
         if res.message == "STARTAPP!" {

@@ -18,10 +18,11 @@ async fn connect_to_server(client_sender: SP, server_receiver: RP) -> io::Result
         .nth(1)
         .unwrap_or_else(|| "127.0.0.1:9481".to_string());
 
+    let sr = client_sender.clone(); 
     let stream = TcpStream::connect(&addr).await.expect("weeror here");
     let (receiver, sender) = stream.into_split();
     let t = task::spawn(server_responce_getter(receiver, client_sender));
-    to_server_sender(sender, server_receiver).await?;
+    to_server_sender(sender, server_receiver, sr).await?;
     match t.await {
         Ok(_) => Ok(()),
         Err(e) => Err(e),
