@@ -1,7 +1,7 @@
 use crate::chat::types::SP;
 use rusqlite;
 
-use super::request::*;
+use super::{request::*, handlers};
 use async_std::io::Result;
 use rusqlite::Connection;
 use serde_json::from_str;
@@ -13,22 +13,22 @@ pub async fn request_selector(json: String, server_sender: &SP, conn: &Connectio
     // }
 
      if let Ok(res) = from_str::<StartAppReq>(&json) {
-        return Ok(());
+         handlers::start_app(res,  server_sender)?
     }
     if let Ok(res) = from_str::<StopAppReq>(&json) {
-        return Ok(());
+        handlers::stop_app(res, conn, server_sender)?
     }
     if let Ok(res) = from_str::<LoadUsersReq>(&json) {
-        return Ok(());
+        handlers::load_users(res, conn, server_sender)?
     }
     if let Ok(res) = from_str::<SendMessageReq>(&json) {
-        return Ok(());
+        handlers::send_message(res, conn, server_sender)?
     }
     if let Ok(res) = from_str::<LoadMessagesReq>(&json) {
-        return Ok(());
+        handlers::load_messages(res, conn, server_sender)?
     }
     if let Ok(res) = from_str::<AddUserReq>(&json) {
-        return Ok(());
+        handlers::add_user(res, conn, server_sender)?
     }
     Err(async_std::io::Error::new(
         async_std::io::ErrorKind::InvalidData,
