@@ -18,7 +18,7 @@ use super::stay_awake::request_repeater;
 
 use super::types::{RP, SP};
 
-use crate::api::handlers::request_handler;
+use crate::api::selector::request_selector;
 
 #[derive(Deserialize, Debug)]
 struct FrontMsg {
@@ -101,7 +101,7 @@ async fn connection_for_sending(
     loop {
         if let Some(msg) = new_msg.await {
             let jsoned = msg.expect("Falied to unwrap gotted message");
-            request_handler(jsoned.to_string(), &server_sender, &conn);
+            request_selector(jsoned.to_string(), &server_sender, &conn);
             /*
             let res: serde_json::Result<FrontMsg> =
                 serde_json::from_str(jsoned.to_text().expect("Falied to parse JSON"));
