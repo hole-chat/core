@@ -32,8 +32,12 @@ use std::sync::mpsc::{Receiver, Sender};
 //     }
 //}
 
-pub struct PackedMessage {
-    pub message: String,
+pub enum PackedMessage {
+    ToFreenet(String),
+    FromFreenet(String),
+    ToClient(String),
+    FromCore(String),
+        
 }
 
 pub type SP = Sender<PackedMessage>;

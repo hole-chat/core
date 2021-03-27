@@ -18,7 +18,7 @@ async fn connect_to_server(client_sender: SP, server_receiver: RP) -> io::Result
         .nth(1)
         .unwrap_or_else(|| "127.0.0.1:9481".to_string());
 
-    let sr = client_sender.clone(); 
+    let sr = client_sender.clone();
     let stream = TcpStream::connect(&addr).await.expect("weeror here");
     let (receiver, sender) = stream.into_split();
     let t = task::spawn(server_responce_getter(receiver, client_sender));
@@ -30,15 +30,12 @@ async fn connect_to_server(client_sender: SP, server_receiver: RP) -> io::Result
 }
 async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) -> io::Result<()> {
     loop {
-        let mut buffer = [0; 512];
+        let mut buffer = [0; 1024];
         match receiver.read(&mut buffer).await {
             Ok(_) => {
                 let received = String::from_utf8_lossy(&buffer[..]);
-                log::info!("received {}", received);
                 client_sender
-                    .send(PackedMessage {
-                        message: received.to_string(),
-                    })
+                    .send(PackedMessage::FromFreenet(received.to_string()))
                     .expect("Falied to send message to client thread");
                 log::info!("Sended to client!");
             }

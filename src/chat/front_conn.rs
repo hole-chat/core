@@ -77,16 +77,28 @@ async fn connection_for_receiving(
     log::info!("Connection for receiving launched");
     while let Ok(res) = client_receiver.recv() {
         //TODO call client get after receiving NodeHello
+        /*
         if res.message.lines().next() == Some("NodeHello") {
             let server_sender = server_sender.clone();
             task::spawn(request_repeater(server_sender)).await?;
             log::info!("Client received: \n {}", res.message);
         }
-
-        sender
-            .send(Message::Text(String::from(res.message).to_owned()))
-            .await
-            .expect("couldn't send Message");
+         */
+        match res {
+            PackedMessage::FromCore(json) => {
+                sender
+                    .send(Message::Text(json))
+                    .await
+                    .expect("Couldn't send message");
+            }
+            PackedMessage::FromFreenet(response) => {sender
+                // TODO freenet_response_handler 
+                .send(Message::Text(response))
+                .await
+                .expect("Couldn't send messge");
+            }
+            _ => {},
+        }
     }
     Ok(())
 }
