@@ -37,7 +37,3 @@ pub async fn request_selector(json: String, server_sender: &SP, conn: &Connectio
     ))
 }
 
-#[test]
-fn is_making_correct_jsons() {
-    let json = from_str::<StopApp>("{\"req_type\":\"StartAppReq\"}").unwrap();
-}
