@@ -10,7 +10,7 @@ fn create_db(conn: &Connection) -> Result<()> {
         "CREATE TABLE users (
                   id                   INTEGER PRIMARY KEY,
                   name                 TEXT UNIQUE NOT NULL,
-                  sign_key             BLOB NOT NULL,
+                  sign_key             BLOB NOT NULL, 
                   insert_key           BLOB NOT NULL,
                   messages_count       INTEGER
                   )",

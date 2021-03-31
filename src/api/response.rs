@@ -1,9 +1,10 @@
 use crate::db::types::User as SqliteUser;
 use serde_derive::{Deserialize, Serialize};
+use tungstenite::http::Response;
 use crate::db::types::SignKey;
 pub type InsertKey = String;
 #[derive(Serialize, Deserialize)]
-enum ResponseType{
+pub enum ResponseType{
     Error,
     NewMessage,
     UserList,
@@ -11,27 +12,30 @@ enum ResponseType{
     FetchedMessages,
     InstanceCreated,
     InstanceAccepted,
+    UserAdded
 
 }
 #[derive(Serialize, Deserialize)]
-enum ErrorType{
-    WrongKey
+pub enum ErrorType{
+    WrongKey,
+    FailedToAddUser
 }
 
 #[derive(Serialize, Deserialize)]
-struct AppError{
-    res_type: ResponseType,
+pub struct AppError{
+    pub res_type: ErrorType,
 }
 
 // Status of last requested action. Like `Create Instance` or `LoadUsers`
-struct ActionStatus{
-    
+#[derive(Serialize, Deserialize)]
+pub struct AppStatus{
+    pub res_type: ResponseType
 }
 
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct User {
-    pub id: u32,
+    pub id: String,
     pub name: String,
     pub sign_key: SignKey,
     pub insert_key: InsertKey,

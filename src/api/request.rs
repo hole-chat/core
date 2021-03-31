@@ -62,6 +62,7 @@ pub struct LoadMessagesReq {
 #[derive(Deserialize, Debug)]
 pub struct AddUserReq {
     pub req_type: AddUser,
+    pub name: String,
     pub sign_key: String,
     pub insert_key: String,
 }

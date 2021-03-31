@@ -13,21 +13,17 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/chat/front_conn.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/chat/front_conn.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/chat/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/chat/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/handlers.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/handlers.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/request.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/request.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/response.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/response.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/chat/serv_conn.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/chat/serv_conn.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/chat/types.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/chat/types.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/db/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/db/types.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/types.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
-  </component>
-  <component name="ClangdSettings">
-    <option name="formatViaClangd" value="false" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -46,7 +42,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.first.check.clang-format" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../olymp/mosh" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
   </component>
@@ -88,6 +84,7 @@
       <workItem from="1613570542642" duration="4470000" />
       <workItem from="1614190476350" duration="9000" />
       <workItem from="1614277959074" duration="31000" />
+      <workItem from="1617097697890" duration="1371000" />
     </task>
     <servers />
   </component>

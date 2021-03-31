@@ -30,6 +30,8 @@ async fn connect_to_server(client_sender: SP, server_receiver: RP) -> io::Result
 }
 async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) -> io::Result<()> {
     loop {
+        // each freenet responce have an identifier and program will define what to do with request by this identifier
+        //TODO create handle_fcp_response function
         let mut buffer = [0; 1024];
         match receiver.read(&mut buffer).await {
             Ok(_) => {
