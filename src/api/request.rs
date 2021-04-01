@@ -1,6 +1,9 @@
+use std::sync::atomic::AtomicU32;
 use fcpv2::types::SSK;
 use serde_derive::{Deserialize, Serialize};
 use serde_json::Result;
+
+type Id = crate::db::types::Id;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CreateInstance;
@@ -47,16 +50,16 @@ pub struct LoadUsersReq {
 #[derive(Deserialize, Debug)]
 pub struct SendMessageReq {
     pub req_type: SendMessage,
-    pub user_id: u32,
+    pub user_id: Id,
     pub message: String,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct LoadMessagesReq {
     pub req_type: LoadMessages,
-    pub user_id: u32,
-    pub count: u8,
-    pub start_index: u8,
+    pub user_id: Id,
+    pub count: u32,
+    pub start_index: u32,
 }
 
 #[derive(Deserialize, Debug)]

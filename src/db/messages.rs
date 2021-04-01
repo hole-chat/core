@@ -10,8 +10,9 @@ fn ret_mes(row: &rusqlite::Row<'_>) -> Result<Message> {
         message: row.get(3)?,
     })
 }
+type Id = crate::db::types::Id;
 
-pub fn select_message_by_id(user_id: u32, id: u32, conn: &Connection) -> Result<Message> {
+pub fn select_message_by_id(user_id: u32, id:u32, conn: &Connection) -> Result<Message> {
     let mut selected = conn.prepare("SELECT * FROM messages WHERE id = ?1 AND user_id = ?2")?;
     let mut message_iter = selected.query_map(params![id, user_id], |row| ret_mes(row))?;
     let message = message_iter.next().unwrap();
@@ -33,7 +34,7 @@ pub fn select_all_user_message(id: u32, conn: &Connection) -> Result<Vec<Message
 }
 
 pub fn select_n_last_messages(
-    user_id: u32,
+    user_id: Id,
     start: u32,
     count: u32,
     conn: &Connection,

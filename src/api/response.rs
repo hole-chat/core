@@ -18,7 +18,9 @@ pub enum ResponseType{
 #[derive(Serialize, Deserialize)]
 pub enum ErrorType{
     WrongKey,
-    FailedToAddUser
+    FailedToAddUser,
+    WrongUserId
+       
 }
 
 #[derive(Serialize, Deserialize)]

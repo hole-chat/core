@@ -3,7 +3,7 @@ use fcpv2::types::{SSK, traits::FcpParser};
 
 use rusqlite::{params, Connection, Result, NO_PARAMS};
 
-pub fn get_user_by_id(id: u32, conn: &Connection) -> Result<User> {
+pub fn get_user_by_id(id: crate::db::types::Id, conn: &Connection) -> Result<User> {
     let mut selected = conn.prepare("SELECT * FROM users WHERE id = ?")?;
     let mut user_iter = selected.query_map(params![id], |row| {
         Ok(User {
@@ -15,7 +15,7 @@ pub fn get_user_by_id(id: u32, conn: &Connection) -> Result<User> {
         })
     })?;
     let user = user_iter.next().unwrap();
-    log::info!("User {:} founded", id);
+    log::info!("User {:} founded", id.0.to_string());
     user
 }
 

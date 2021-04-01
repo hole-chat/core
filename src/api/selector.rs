@@ -35,6 +35,7 @@ pub async fn request_selector(json: String, server_sender: &SP, conn: &Connectio
         match handlers::add_user(res, conn, server_sender) {
             Ok(_) => {},
             Err(e) => {
+                // Sending error to user, because failed to add user
                 let _ = server_sender
                     .send(PackedMessage::ToClient(
                         json!(AppError {
