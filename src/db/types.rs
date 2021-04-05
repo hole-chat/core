@@ -12,6 +12,7 @@ use uuid::Uuid;
 use crate::api::response::User as JsonableUser;
 
 pub const DB_PATH: &str = "hole.db";
+pub type Time = chrono::DateTime<chrono::Local>;
 
 pub type SignKey = String;
 pub type InsertKey = SSK;
@@ -66,7 +67,8 @@ impl User {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Message {
     pub id: u32,
-    pub date: NaiveDateTime,
-    pub user_id: u32,
+    pub date: Time,
+    pub user_id: Id,
     pub message: String,
+    pub from_me: bool,
 }

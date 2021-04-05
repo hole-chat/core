@@ -1,5 +1,6 @@
 use super::response::User;
 use super::response::UserList;
+use std::time::{SystemTime};
 use super::{
     request::*,
     response::{AppStatus, ResponseType},
@@ -16,6 +17,8 @@ use fcpv2::types::{
 use rusqlite::Connection;
 use serde_json::json;
 use uuid::Uuid;
+
+use crate::db::types::Id;
 
 pub fn start_app(request: StartAppReq, server_sender: &SP) -> Result<()> {
     Ok(())
@@ -41,8 +44,18 @@ pub fn load_users(request: LoadUsersReq, conn: &Connection, server_sender: &SP) 
 }
 pub fn send_message(request: SendMessageReq, conn: &Connection, server_sender: &SP) -> Result<()> {
     if let Ok(user_data) = db::users::get_user_by_id(request.user_id, conn) {
+        // Add message to DB
         let key = user_data.insert_key;
         let identifier = &user_data.id.0.to_string()[..];
+        let message_id :u32 = user_data.messages_count;
+        let db_message = db::types::Message{
+            id: message_id,
+            date: chrono::offset::Local::now(),
+            user_id: Id(uuid::Uuid::parse_str(identifier).unwrap()),
+            message: request.message.clone(),
+            from_me: false,
+        };
+        let _ = db::messages::add_my_message(db_message, conn).unwrap();
         let fcp_req: String =
             ClientPut::new_default_direct(key, identifier, &request.message[..]).convert();
         server_sender

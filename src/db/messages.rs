@@ -8,6 +8,7 @@ fn ret_mes(row: &rusqlite::Row<'_>) -> Result<Message> {
         user_id: row.get(1)?,
         date: row.get(2)?,
         message: row.get(3)?,
+        from_me: row.get(4)?,
     })
 }
 type Id = crate::db::types::Id;
@@ -22,7 +23,7 @@ pub fn select_message_by_id(user_id: u32, id:u32, conn: &Connection) -> Result<M
 
 pub fn select_all_user_message(id: u32, conn: &Connection) -> Result<Vec<Message>> {
     let mut selected =
-        conn.prepare("SELECT * FROM messages WHERE user_id = ?1 ORDER BY date DESC")?;
+        conn.prepare("SELECT * FROM messages, my_messages WHERE user_id = ?1 ORDER BY date DESC")?;
     let message_iter = selected.query_map(params![id], |row| ret_mes(row))?;
     let mut messages: Vec<Message> = Vec::new();
     for message in message_iter {
@@ -58,7 +59,28 @@ pub fn add_message(message: Message, conn: &Connection) -> Result<()> {
                   id,
                   user_id,
                   date,
-                  message
+                  message,
+                  from_me
+                  ) VALUES (?1, ?2, ?3, ?4)",
+        params![message.id, message.user_id, message.date, message.message],
+    ) {
+        Ok(_) => log::info!("message {:} added succsessfully!", message.id),
+        Err(e) => {
+            log::error!("failed to insert message {:?}", e);
+            return Err(e);
+        }
+    }
+    Ok(())
+}
+
+pub fn add_my_message(message: Message, conn: &Connection) -> Result<()> {
+    match conn.execute(
+        "INSERT INTO messages (
+                  id,
+                  user_id,
+                  date,
+                  message,
+                  from_me
                   ) VALUES (?1, ?2, ?3, ?4)",
         params![message.id, message.user_id, message.date, message.message],
     ) {

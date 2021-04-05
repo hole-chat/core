@@ -24,11 +24,25 @@ fn create_db(conn: &Connection) -> Result<()> {
                   id                      INTEGER PRIMARY KEY,
                   user_id                 INTEGER NOT NULL,
                   date                    datetime NOT NULL,
-                  message                 TEXT NOT NULL
+                  message                 TEXT NOT NULL,
+                  from_me              BOOL
                   )",
         params![],
     ) {
         Ok(_) => log::info!("MESSAGES table created successfully!"),
+        Err(e) => log::error!("failed to create USER table {:?}", e),
+    }
+    match conn.execute(
+        "CREATE TABLE my_messages (
+                  id                      INTEGER PRIMARY KEY,
+                  user_id                 INTEGER NOT NULL,
+                  date                    datetime NOT NULL,
+                  message                 TEXT NOT NULL,
+                  from_me              BOOL
+                  )",
+        params![],
+    ) {
+        Ok(_) => log::info!("MY_MESSAGES table created successfully!"),
         Err(e) => log::error!("failed to create USER table {:?}", e),
     }
     Ok(())
