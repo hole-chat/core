@@ -91,13 +91,14 @@ async fn connection_for_receiving(
                     .await
                     .expect("Couldn't send message");
             }
-            PackedMessage::FromFreenet(response) => {sender
-                // TODO freenet_response_handler 
-                .send(Message::Text(response))
-                .await
-                .expect("Couldn't send messge");
+            PackedMessage::FromFreenet(response) => {
+                sender
+                    // TODO freenet_response_handler
+                    .send(Message::Text(response))
+                    .await
+                    .expect("Couldn't send messge");
             }
-            _ => {},
+            _ => {}
         }
     }
     Ok(())
@@ -113,7 +114,14 @@ async fn connection_for_sending(
     loop {
         if let Some(msg) = new_msg.await {
             let jsoned = msg.expect("Falied to unwrap gotted message");
-            request_selector(jsoned.to_string(), &server_sender, &conn);
+            log::info!("new request");
+            match request_selector(jsoned.to_string(), server_sender.clone(), &conn) {
+                Ok(_) => {}
+                Err(e) => {
+                    log::error!("{}", e);
+                }
+            };
+
             /*
             let res: serde_json::Result<FrontMsg> =
                 serde_json::from_str(jsoned.to_text().expect("Falied to parse JSON"));
@@ -139,7 +147,10 @@ async fn connection_for_sending(
             new_msg = receiver.next();
         } else {
             {
-                break;
+                return Err(async_std::io::Error::new(
+                    async_std::io::ErrorKind::InvalidData,
+                    "failed to unwrap message",
+                ));
             }
         }
     }

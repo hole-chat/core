@@ -1,6 +1,5 @@
 use super::response::User;
 use super::response::UserList;
-use std::time::{SystemTime};
 use super::{
     request::*,
     response::{AppStatus, ResponseType},
@@ -9,27 +8,29 @@ use crate::chat::types::PackedMessage;
 use crate::chat::types::SP;
 use crate::db::{self, messages, types, users};
 use async_std::io::Result;
-use fcpv2::client::fcp_types::ClientPut;
+use fcpv2::client::fcp_types::{ClientPut, ClientHello};
 use fcpv2::types::{
     traits::{FcpParser, FcpRequest},
     SSK,
 };
 use rusqlite::Connection;
 use serde_json::json;
+use std::time::SystemTime;
 use uuid::Uuid;
 
 use crate::db::types::Id;
 
-pub fn start_app(request: StartAppReq, server_sender: &SP) -> Result<()> {
+pub fn start_app(request: StartAppReq, server_sender: SP) -> Result<()> {
+    server_sender.send(PackedMessage::ToFreenet(ClientHello::new("start_app_request".to_string(), 2.0).convert())).unwrap();
     Ok(())
     //sending *JSON*, what everything is OK
 }
 
-pub fn stop_app(request: StopAppReq, conn: &Connection, server_sender: &SP) -> Result<()> {
+pub fn stop_app(request: StopAppReq, conn: &Connection, server_sender: SP) -> Result<()> {
     std::process::exit(0)
 }
 
-pub fn load_users(request: LoadUsersReq, conn: &Connection, server_sender: &SP) -> Result<()> {
+pub fn load_users(request: LoadUsersReq, conn: &Connection, server_sender: SP) -> Result<()> {
     let jsoned_users: Vec<_> = users::load_all_users(conn)
         .unwrap()
         .into_iter()
@@ -42,13 +43,13 @@ pub fn load_users(request: LoadUsersReq, conn: &Connection, server_sender: &SP) 
     let _ = server_sender.send(PackedMessage::ToClient(users)).unwrap();
     Ok(())
 }
-pub fn send_message(request: SendMessageReq, conn: &Connection, server_sender: &SP) -> Result<()> {
+pub fn send_message(request: SendMessageReq, conn: &Connection, server_sender: SP) -> Result<()> {
     if let Ok(user_data) = db::users::get_user_by_id(request.user_id, conn) {
         // Add message to DB
         let key = user_data.insert_key;
         let identifier = &user_data.id.0.to_string()[..];
-        let message_id :u32 = user_data.messages_count;
-        let db_message = db::types::Message{
+        let message_id: u32 = user_data.messages_count;
+        let db_message = db::types::Message {
             id: message_id,
             date: chrono::offset::Local::now(),
             user_id: Id(uuid::Uuid::parse_str(identifier).unwrap()),
@@ -77,11 +78,7 @@ pub fn send_message(request: SendMessageReq, conn: &Connection, server_sender: &
     //sending FCP request
 }
 
-pub fn load_messages(
-    request: LoadMessagesReq,
-    conn: &Connection,
-    server_sender: &SP,
-) -> Result<()> {
+pub fn load_messages(request: LoadMessagesReq, conn: &Connection, server_sender: SP) -> Result<()> {
     let messages = db::messages::select_n_last_messages(
         request.user_id,
         request.start_index,
@@ -96,7 +93,7 @@ pub fn load_messages(
     //sending *JSON*
 }
 // Adding user to DB
-pub fn add_user(request: AddUserReq, conn: &Connection, server_sender: &SP) -> Result<()> {
+pub fn add_user(request: AddUserReq, conn: &Connection, server_sender: SP) -> Result<()> {
     let user = db::types::User {
         id: db::types::Id(Uuid::new_v4()),
         name: request.name,
