@@ -1,6 +1,4 @@
-use crate::chat::types::{PackedMessage, SP};
-use rusqlite;
-
+use crate::chat::types::{PackedMessage, SP}; use rusqlite;
 use super::{
     handlers,
     request::*,
