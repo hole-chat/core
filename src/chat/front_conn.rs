@@ -115,7 +115,7 @@ async fn connection_for_sending(
         if let Some(msg) = new_msg.await {
             let jsoned = msg.expect("Falied to unwrap gotted message");
             log::info!("new request");
-            match request_selector(jsoned.to_string(), server_sender.clone(), &conn) {
+            match request_selector(&jsoned.to_string()[..], server_sender.clone(), &conn) {
                 Ok(_) => {}
                 Err(e) => {
                     log::error!("{}", e);
