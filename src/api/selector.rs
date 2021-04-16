@@ -17,28 +17,42 @@ pub fn request_selector(json: &str, server_sender: SP, conn: &Connection) -> Res
     let parsed: Request = serde_json::from_str(json).unwrap();
     match parsed{
         Request::StartApp => {
-            handlers::start_app(server_sender.clone())?
+            match handlers::start_app(server_sender.clone()) {
+            Ok(_) => return Ok(()),
+                Err(_) => {}
+                // Sending error to user, because failed to add user
+//                let _ = server_sender
+//                    .clone()
+//                    .send(PackedMessage::ToClient(
+                //         json!(AppError {
+                //             res_type: ErrorType::FailedToAddUser
+                //         })
+                //         .to_string(),
+                //     ))
+                //     .unwrap();
+                // return Ok(());
+        }
         },
         Request::StopApp => {
-            handlers::stop_app(&conn, server_sender.clone())?
+            match handlers::stop_app(&conn, server_sender.clone()) { Ok(_) => {}, Err(_) => {} }
         },
         Request::LoadUsers => {
-            handlers::load_users(&conn, server_sender.clone())?
+            match handlers::load_users(&conn, server_sender.clone()){ Ok(_) => {}, Err(_) => {} }
         },
         Request::SendMessage {
            user_id, message
         } => {
-            handlers::send_message(user_id, message, &conn, server_sender.clone())?
+            match handlers::send_message(user_id, message, &conn, server_sender.clone()){ Ok(_) => {}, Err(_) => {} }
         },
         Request::LoadMessages{
            user_id, count, start_index
         } => {
-            handlers::load_messages(user_id, start_index, count, &conn, server_sender.clone())?
+            match handlers::load_messages(user_id, start_index, count, &conn, server_sender.clone()){ Ok(_) => {}, Err(_) => {} }
         },
         Request::AddUser{
             name, sign_key, insert_key
         } => {
-            handlers::add_user(name, insert_key, sign_key, &conn, server_sender.clone())?
+            match handlers::add_user(name, insert_key, sign_key, &conn, server_sender.clone()){ Ok(_) => {}, Err(_) => {} }
         },
     }
 

@@ -40,6 +40,7 @@ pub fn load_all_users(conn: &Connection) -> Result<Vec<User>> {
 }
 
 pub fn add_user(user: User, conn: &Connection) -> Result<()> {
+    log::info!("{:?}", user);
     match conn.execute(
         "INSERT INTO users (
                   id,

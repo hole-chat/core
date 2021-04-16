@@ -52,7 +52,7 @@ pub fn send_message(user_id: Id, message: String, conn: &Connection, server_send
         let db_message = db::types::Message {
             id: message_id,
             date: chrono::offset::Local::now(),
-            user_id: Id(uuid::Uuid::parse_str(identifier).unwrap()),
+            user_id: Id(uuid::Uuid::parse_str(identifier).expect("failed to parse user ID")),
             message: message.clone(),
             from_me: false,
         };

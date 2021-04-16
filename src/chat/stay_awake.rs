@@ -11,7 +11,7 @@ pub async fn request_repeater(ss: SP) -> io::Result<()> {
         //TODO create a field with tracked users
         let time = std::time::Duration::from_millis(1000);
         std::thread::sleep(time);
-        match ss.send(PackedMessage::FromFreenet(
+        match ss.send(PackedMessage::ToFreenet(
             ClientGet::new_default(SSK{sign_key: "9Zq-H7vg1iN6852rcL3mQQaIfPZODnIJnKyIy1dE6mk".to_string(), decrypt_key: "n-vQibdLXPDMtW7k5ftbR9HVz4Tb184lUc~MiUGHWAM".to_string(),settings: Some("AQACAAE".to_string())},
                                                       "check",
                                                      ReturnType::Direct).convert()

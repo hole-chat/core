@@ -8,10 +8,10 @@ use types::DB_PATH;
 fn create_db(conn: &Connection) -> Result<()> {
     match conn.execute(
         "CREATE TABLE users (
-                  id                   INTEGER PRIMARY KEY,
+                  id                   BLOB PRIMARY KEY,
                   name                 TEXT UNIQUE NOT NULL,
-                  sign_key             BLOB NOT NULL, 
-                  insert_key           BLOB NOT NULL,
+                  sign_key             BLOB UNIQUE NOT NULL,
+                  insert_key           BLOB UNIQUE NOT NULL,
                   messages_count       INTEGER
                   )",
         params![],
@@ -22,7 +22,7 @@ fn create_db(conn: &Connection) -> Result<()> {
     match conn.execute(
         "CREATE TABLE messages (
                   id                      INTEGER PRIMARY KEY,
-                  user_id                 INTEGER NOT NULL,
+                  user_id                 BLOB NOT NULL,
                   date                    datetime NOT NULL,
                   message                 TEXT NOT NULL,
                   from_me              BOOL
