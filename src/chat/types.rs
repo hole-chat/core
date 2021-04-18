@@ -32,7 +32,7 @@ use std::sync::mpsc::{Receiver, Sender};
 //     }
 //}
 
-
+#[derive(PartialEq, Clone, Debug)]
 pub enum PackedMessage {
     ToFreenet(String),
     FromFreenet(String),

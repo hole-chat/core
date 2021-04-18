@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="CMakeSettings">
     <configurations>
       <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" ENABLED="true" />
@@ -11,14 +14,12 @@
   <component name="ChangeListManager">
     <list default="true" id="e434c6bf-d215-476e-8569-84080f63e0f9" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/api/handlers.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/handlers.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/api/request.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/request.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/api/response.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/response.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/chat/front_conn.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/chat/front_conn.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/chat/serv_conn.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/chat/serv_conn.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/db/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/db/types.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/types.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/chat/serv_handler.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/chat/serv_handler.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/chat/stay_awake.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/chat/stay_awake.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/chat/types.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/chat/types.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,6 +28,14 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
   </component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="8w8syaev" />
@@ -45,6 +54,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+    <property name="settings.editor.selected.configurable" value="language.rust.rustfmt" />
   </component>
   <component name="RunManager">
     <configuration name="Run hole" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
@@ -62,6 +72,11 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Cargo.Run hole" />
@@ -69,7 +84,9 @@
     </recent_temporary>
   </component>
   <component name="RustProjectSettings">
+    <option name="runRustfmtOnSave" value="true" />
     <option name="toolchainHomeDirectory" value="/usr/bin" />
+    <option name="useRustfmt" value="true" />
     <option name="version" value="2" />
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -85,10 +102,15 @@
       <workItem from="1614190476350" duration="9000" />
       <workItem from="1614277959074" duration="31000" />
       <workItem from="1617097697890" duration="1371000" />
+      <workItem from="1618752637415" duration="4677000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

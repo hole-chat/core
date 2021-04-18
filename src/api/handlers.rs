@@ -22,6 +22,13 @@ use crate::db::types::Id;
 
 pub fn start_app(server_sender: SP) -> Result<()> {
     server_sender.send(PackedMessage::ToFreenet(ClientHello::new("start_app_request".to_string(), 2.0).convert())).unwrap();
+    server_sender.send(PackedMessage::ToFreenet("\n\
+                                                 ClientGet\n\
+                                                 URI=USK@B5CYo9jdAndaZ4IoKdJKCi28bY96f03FhUdY4PO6anY,9AHiE5ZdMJ9BuIXdv7hucus5VbVtwz9tKjj9LcPbtwM,AQACAAE/user-3/0\n\
+                                                 Identifier=check\n\
+                                                 ReturnType=direct\n\
+                                                 EndMessage\n\
+                                                 \n".to_string())).unwrap();
     Ok(())
     //sending *JSON*, what everything is OK
 }

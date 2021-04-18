@@ -19,8 +19,10 @@ async fn connect_to_server(client_sender: SP, server_receiver: RP) -> io::Result
         .unwrap_or_else(|| "127.0.0.1:9481".to_string());
 
     let sr = client_sender.clone();
-    let stream = TcpStream::connect(&addr).await.expect("Unable to connect to FCP");
-        let (receiver, sender) = stream.into_split();
+    let stream = TcpStream::connect(&addr)
+        .await
+        .expect("Unable to connect to FCP");
+    let (receiver, sender) = stream.into_split();
     log::info!("Connected to FCP");
     let t = task::spawn(server_responce_getter(receiver, client_sender));
     to_server_sender(sender, server_receiver, sr).await?;
@@ -30,17 +32,22 @@ async fn connect_to_server(client_sender: SP, server_receiver: RP) -> io::Result
     }
 }
 async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) -> io::Result<()> {
+    // let mut prev = [0; 1024];
     loop {
         // each freenet responce have an identifier and program will define what to do with request by this identifier
         //TODO create handle_fcp_response function
         let mut buffer = [0; 1024];
         match receiver.read(&mut buffer).await {
             Ok(_) => {
-                let received = String::from_utf8_lossy(&buffer[..]);
-                client_sender
-                    .send(PackedMessage::FromFreenet(received.to_string()))
-                    .expect("Falied to send message to client thread");
-                log::info!("Sended to client!");
+                // if prev != buffer {
+                    let received = String::from_utf8_lossy(&buffer[..]);
+                    log::debug!("gotted {:?}", &received);
+                    client_sender
+                        .send(PackedMessage::FromFreenet(received.to_string()))
+                        .expect("Falied to send message to client thread");
+                    log::info!("Sended to client! {}", received.chars().count());
+                    // prev = buffer;
+                // }
             }
             Err(e) => log::error!("Error: {} ", e),
         }

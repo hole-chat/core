@@ -58,12 +58,21 @@ async fn connect_to_client(
             .await
             .expect("err during the ws handshake");
 
+        let ss = server_sender.clone();
         log::info!("connected to: {}", addr);
         let (sender, receiver) = ws.split();
 
-        let t1 = task::spawn(connection_for_sending(receiver, server_sender, conn));
-        connection_for_receiving(sender, client_receiver, client_repeater).await?;
+        log::debug!("launching repeater...");
+        let t1 = task::spawn(connection_for_receiving(
+            sender,
+            client_receiver,
+            client_repeater,
+        ));
+        let t2 = task::spawn(connection_for_sending(receiver, server_sender, conn));
+        let t3 = task::spawn(request_repeater(ss));
         t1.await?;
+        t3.await?;
+        t2.await?;
     }
 
     Ok(())
@@ -75,24 +84,34 @@ async fn connection_for_receiving(
     server_sender: SP,
 ) -> io::Result<()> {
     log::info!("Connection for receiving launched");
+    //    let mut prev: PackedMessage = PackedMessage::FromFreenet("nothing".to_string());
     while let Ok(res) = client_receiver.recv() {
         //TODO call client get after receiving NodeHello
+        // log::debug!("RES {:?}", &res);
+        // log::debug!("PREV {:?}", &prev);
+        // if res != &prev {
+        // prev = res.clone();
+        // log::debug!("they are different");
         match res {
             PackedMessage::FromCore(json) => {
+                let j = json.clone();
                 sender
-                    .send(Message::Text(json))
+                    .send(Message::Text(j))
                     .await
                     .expect("Couldn't send message");
             }
             PackedMessage::FromFreenet(response) => {
+                let r = response.clone();
+                log::debug!("Got:\n {}", &response);
                 sender
                     // TODO freenet_response_handler
-                    .send(Message::Text(response))
+                    .send(Message::Text(r.to_string()))
                     .await
                     .expect("Couldn't send messge");
             }
             _ => {}
         }
+        // }
     }
     Ok(())
 }
@@ -102,6 +121,7 @@ async fn connection_for_sending(
     server_sender: SP,
     conn: rusqlite::Connection,
 ) -> io::Result<()> {
+    let ss = server_sender.clone();
     log::info!("Connection for sending launched");
     let mut new_msg = receiver.next();
     loop {

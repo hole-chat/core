@@ -25,6 +25,7 @@ pub async fn to_server_sender(
                 log::info!("Message sended to client thread");
             }
             PackedMessage::ToFreenet(req) => {
+                log::debug!("SENDED {}", req);
                 sender.write(req.as_bytes()).await?;
                 log::info!("Message sended to freenet");
             }
