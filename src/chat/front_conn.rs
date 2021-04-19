@@ -1,4 +1,5 @@
 use crate::chat::types::PackedMessage;
+use std::sync::{Arc, Mutex};
 use crate::db;
 use async_std::{
     io,
@@ -94,20 +95,18 @@ async fn connection_for_receiving(
         // log::debug!("they are different");
         match res {
             PackedMessage::FromCore(json) => {
-                let j = json.clone();
-                sender
-                    .send(Message::Text(j))
-                    .await
-                    .expect("Couldn't send message");
+                async_std::task::block_on(sender
+                    .send(Message::Text(json))).expect("Couldn't send message")
+
             }
             PackedMessage::FromFreenet(response) => {
                 let r = response.clone();
                 log::debug!("Got:\n {}", &response);
-                sender
-                    // TODO freenet_response_handler
-                    .send(Message::Text(r.to_string()))
-                    .await
-                    .expect("Couldn't send messge");
+                async_std::task::block_on(sender
+                     // TODO freenet_response_handler
+                     .send(Message::Text(r.to_string())));
+                //     .await
+                //     .expect("Couldn't send messge");
             }
             _ => {}
         }

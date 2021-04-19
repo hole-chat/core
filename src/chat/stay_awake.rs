@@ -11,7 +11,7 @@ pub async fn request_repeater(ss: SP) -> io::Result<()> {
     //TODO create a field with tracked users
     log::debug!("Request Repeater Started!");
     loop {
-        let time = std::time::Duration::from_millis(600);
+        let time = std::time::Duration::from_millis(1300);
         std::thread::sleep(time);
         log::debug!("enough sleep");
         match ss.send(PackedMessage::ToFreenet(
