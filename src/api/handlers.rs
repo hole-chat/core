@@ -1,34 +1,47 @@
 use super::response::User;
 use super::response::UserList;
-use super::{
-    response::{AppStatus, ResponseType},
-};
+use super::response::{AppStatus, ResponseType};
 use crate::api::request::Request;
+use crate::chat::init_config;
 use crate::chat::types::PackedMessage;
 use crate::chat::types::SP;
 use crate::db::{self, messages, types, users};
 use async_std::io::Result;
-use fcpv2::client::fcp_types::{ClientPut, ClientHello};
+use fcpv2::client::fcp_types::{ClientHello, ClientPut};
 use fcpv2::types::{
     traits::{FcpParser, FcpRequest},
     SSK,
 };
 use rusqlite::Connection;
 use serde_json::json;
+use std::fs::File;
+use std::path::Path;
 use std::time::SystemTime;
 use uuid::Uuid;
 
 use crate::db::types::Id;
 
 pub fn start_app(server_sender: SP) -> Result<()> {
-    server_sender.send(PackedMessage::ToFreenet(ClientHello::new("start_app_request".to_string(), 2.0).convert())).unwrap();
-    server_sender.send(PackedMessage::ToFreenet("\n\
-                                                 ClientGet\n\
-                                                 URI=USK@B5CYo9jdAndaZ4IoKdJKCi28bY96f03FhUdY4PO6anY,9AHiE5ZdMJ9BuIXdv7hucus5VbVtwz9tKjj9LcPbtwM,AQACAAE/user-3/0\n\
-                                                 Identifier=check\n\
-                                                 ReturnType=direct\n\
-                                                 EndMessage\n\
-                                                 \n".to_string())).unwrap();
+    server_sender
+        .send(PackedMessage::ToFreenet(
+            ClientHello::new("start_app_request".to_string(), 2.0).convert(),
+        ))
+        .unwrap();
+    let config_path = Path::new(".hole.toml");
+     match File::open(&config_path) {
+         Err(e) => {
+             log::debug!("creating new config file...");
+//             std::fs::File::create(&config_path).unwrap();
+             server_sender.send(PackedMessage::ToFreenet(
+            fcpv2::client::fcp_types::GenerateSSK {
+                identifier: Some("config-SSK".to_string()),
+            }
+            .convert()
+             )).unwrap()}
+                 ,
+        Ok(res) => {} //    TODO converting file from TOML to JSON and sending it to frontend
+    };
+
     Ok(())
     //sending *JSON*, what everything is OK
 }
@@ -37,7 +50,7 @@ pub fn stop_app(conn: &Connection, server_sender: SP) -> Result<()> {
     std::process::exit(0)
 }
 
-pub fn load_users( conn: &Connection, server_sender: SP) -> Result<()> {
+pub fn load_users(conn: &Connection, server_sender: SP) -> Result<()> {
     let jsoned_users: Vec<_> = users::load_all_users(conn)
         .unwrap()
         .into_iter()
@@ -50,7 +63,12 @@ pub fn load_users( conn: &Connection, server_sender: SP) -> Result<()> {
     let _ = server_sender.send(PackedMessage::ToClient(users)).unwrap();
     Ok(())
 }
-pub fn send_message(user_id: Id, message: String, conn: &Connection, server_sender: SP) -> Result<()> {
+pub fn send_message(
+    user_id: Id,
+    message: String,
+    conn: &Connection,
+    server_sender: SP,
+) -> Result<()> {
     if let Ok(user_data) = db::users::get_user_by_id(user_id, conn) {
         // Add message to DB
         let key = user_data.insert_key;
@@ -85,14 +103,14 @@ pub fn send_message(user_id: Id, message: String, conn: &Connection, server_send
     //sending FCP request
 }
 
-pub fn load_messages(user_id: Id, start_index: u32, count:u32, conn: &Connection, server_sender: SP) -> Result<()> {
-    let messages = db::messages::select_n_last_messages(
-        user_id,
-        start_index,
-        count,
-        conn,
-    )
-    .unwrap();
+pub fn load_messages(
+    user_id: Id,
+    start_index: u32,
+    count: u32,
+    conn: &Connection,
+    server_sender: SP,
+) -> Result<()> {
+    let messages = db::messages::select_n_last_messages(user_id, start_index, count, conn).unwrap();
     let jsoned = json!(messages);
     let _ = server_sender.send(PackedMessage::ToClient(jsoned.to_string()));
     Ok(())
@@ -100,7 +118,13 @@ pub fn load_messages(user_id: Id, start_index: u32, count:u32, conn: &Connection
     //sending *JSON*
 }
 // Adding user to DB
-pub fn add_user(name: String, insert_key: String, sign_key: String, conn: &Connection, server_sender: SP) -> Result<()> {
+pub fn add_user(
+    name: String,
+    insert_key: String,
+    sign_key: String,
+    conn: &Connection,
+    server_sender: SP,
+) -> Result<()> {
     let user = db::types::User {
         id: db::types::Id(Uuid::new_v4()),
         name: name,

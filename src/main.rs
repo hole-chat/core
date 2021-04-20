@@ -1,15 +1,13 @@
+mod api;
 mod chat;
 mod db;
 mod encrypting;
-mod api;
 use async_std::io;
 use chat::front_conn::listen_client;
 use chat::serv_conn::listen_server;
 use chat::types::PackedMessage;
-use chrono::Utc;
-use db::users;
-use fcpv2::types::{traits::FcpParser, SSK};
 use log;
+use serde_derive::Deserialize;
 use simple_logger::SimpleLogger;
 use std::{
     sync::{
@@ -45,6 +43,7 @@ use std::{
                         |                                                                                   |
                         +-----------------------------------------------------------------------------------+
 */
+
 
 fn main() -> io::Result<()> {
     SimpleLogger::new().init().unwrap();
