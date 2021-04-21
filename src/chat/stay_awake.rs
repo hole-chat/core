@@ -3,6 +3,8 @@ use async_std::io;
 use fcpv2::client::fcp_types::ClientGet;
 use fcpv2::types::{traits::FcpRequest, ReturnType, KEY, SSK, USK};
 use std::sync::mpsc::Sender;
+use std::path::Path;
+use std::fs::File;
 
 type SP = Sender<PackedMessage>;
 
@@ -12,6 +14,11 @@ pub async fn request_repeater(ss: SP) -> io::Result<()> {
     //    loop {
     //TODO create a field with tracked users
     log::debug!("Request Repeater Started!");
+    let config: String = String::from_utf8_lossy(&std::fs::read(".hole.toml")?).parse().unwrap();
+    let parsed: crate::chat::Config =  toml::from_str(&config[..]).unwrap();
+
+    log::debug!("Config gotted: {:?}", &config);
+
     loop {
         let users: Vec<crate::db::types::User> = crate::db::users::load_all_users(&db).unwrap();
         let time = std::time::Duration::from_millis(1300);
@@ -25,7 +32,7 @@ pub async fn request_repeater(ss: SP) -> io::Result<()> {
             ClientGet::new_default(
                 KEY::USK(
                     USK {
-                        ssk: user.insert_key,
+                        ssk: parsed.private_key.clone(),
                         path: format!("{}/{}", &id, &index),
                     }
                 ),

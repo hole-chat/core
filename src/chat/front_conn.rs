@@ -95,8 +95,9 @@ async fn connection_for_receiving(
         // log::debug!("they are different");
         match res {
             PackedMessage::FromCore(json) => {
-                async_std::task::block_on(sender.send(Message::Text(json)))
-                    .expect("Couldn't send message")
+                async_std::task::block_on(sender.send(Message::Text(json.clone())))
+                    .expect("Couldn't send message");
+                log::debug!("Message sended to frontend: {}", json.clone());
             }
             PackedMessage::FromFreenet(response) => {
                 let r = response.clone();

@@ -28,18 +28,30 @@ pub fn start_app(server_sender: SP) -> Result<()> {
         ))
         .unwrap();
     let config_path = Path::new(".hole.toml");
-     match File::open(&config_path) {
-         Err(e) => {
-             log::debug!("creating new config file...");
-//             std::fs::File::create(&config_path).unwrap();
-             server_sender.send(PackedMessage::ToFreenet(
-            fcpv2::client::fcp_types::GenerateSSK {
-                identifier: Some("config-SSK".to_string()),
-            }
-            .convert()
-             )).unwrap()}
-                 ,
-        Ok(res) => {} //    TODO converting file from TOML to JSON and sending it to frontend
+    match File::open(&config_path) {
+        Err(e) => {
+            log::debug!("creating new config file...");
+            //             std::fs::File::create(&config_path).unwrap();
+            server_sender
+                .send(PackedMessage::ToFreenet(
+                    fcpv2::client::fcp_types::GenerateSSK {
+                        identifier: Some("config-SSK".to_string()),
+                    }
+                    .convert(),
+                ))
+                .unwrap()
+        }
+        Ok(res) => {
+            let conf = std::fs::read_to_string(&config_path).unwrap();
+            log::debug!("Responsing to start_app: {}", &conf);
+            let toml: crate::chat::Config  = toml::from_str(&conf[..]).unwrap();
+            server_sender
+                .send(PackedMessage::ToClient(
+                    serde_json::to_string(&toml).unwrap(),
+                ))
+                .unwrap();
+            log::debug!("Responsing to start_app");
+        } //    TODO converting file from TOML to JSON and sending it to frontend
     };
 
     Ok(())

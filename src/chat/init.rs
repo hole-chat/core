@@ -4,7 +4,7 @@ use std::io::prelude::*;
 use std::path::Path;
 use async_std::io;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
 pub     id: crate::db::types::Id,

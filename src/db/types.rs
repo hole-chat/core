@@ -16,7 +16,7 @@ pub type Time = chrono::DateTime<chrono::Local>;
 
 pub type SignKey = String;
 pub type InsertKey = SSK;
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub struct Id(pub uuid::Uuid);
 
 #[derive(Debug, Deserialize, Serialize)]
