@@ -19,7 +19,7 @@ pub type InsertKey = SSK;
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub struct Id(pub uuid::Uuid);
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct User {
     pub id: Id,
     pub name: String,

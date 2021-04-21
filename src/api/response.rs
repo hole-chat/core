@@ -3,23 +3,27 @@ use crate::db::types::User as SqliteUser;
 use serde_derive::{Deserialize, Serialize};
 use tungstenite::http::Response;
 pub type InsertKey = String;
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 #[serde(tag = "type")]
 pub enum ResponseType {
     Error,
     NewMessage,
-    UserList,
     NewUser,
     FetchedMessages,
     InstanceCreated,
     InstanceAccepted,
-    UserAdded,
+#[serde(rename_all = "camelCase")]
+    UserAdded(User),
+#[serde(rename_all = "camelCase")]
     InitialConfig {
         id: crate::db::types::Id,
         public_key: fcpv2::types::SSK,
         private_key: fcpv2::types::SSK,
     },
+    UserList {
+     users: Vec<User>,
+    }
 }
 #[derive(Serialize, Deserialize)]
 pub enum ErrorType {
@@ -39,7 +43,8 @@ pub struct AppStatus {
     pub res_type: ResponseType,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct User {
     pub id: String,
     pub name: String,
@@ -48,7 +53,3 @@ pub struct User {
     pub messages_count: u32,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct UserList {
-    pub users: Vec<User>,
-}

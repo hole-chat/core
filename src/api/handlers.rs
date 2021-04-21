@@ -1,5 +1,4 @@
 use super::response::User;
-use super::response::UserList;
 use super::response::{AppStatus, ResponseType};
 use crate::api::request::Request;
 use crate::chat::init_config;
@@ -44,10 +43,15 @@ pub fn start_app(server_sender: SP) -> Result<()> {
         Ok(res) => {
             let conf = std::fs::read_to_string(&config_path).unwrap();
             log::debug!("Responsing to start_app: {}", &conf);
-            let toml: crate::chat::Config  = toml::from_str(&conf[..]).unwrap();
+            let toml: crate::chat::Config = toml::from_str(&conf[..]).unwrap();
             server_sender
                 .send(PackedMessage::ToClient(
-                    serde_json::to_string(&toml).unwrap(),
+                    serde_json::to_string(&crate::api::response::ResponseType::InitialConfig {
+                        id: toml.id.clone(),
+                        public_key: toml.public_key.clone(),
+                        private_key: toml.private_key.clone(),
+                    })
+                    .unwrap(),
                 ))
                 .unwrap();
             log::debug!("Responsing to start_app");
@@ -68,7 +72,7 @@ pub fn load_users(conn: &Connection, server_sender: SP) -> Result<()> {
         .into_iter()
         .map(|x| x.to_jsonable())
         .collect();
-    let users: String = serde_json::to_string(&UserList {
+    let users: String = serde_json::to_string(&crate::api::response::ResponseType::UserList {
         users: jsoned_users,
     })
     .unwrap();
@@ -137,22 +141,35 @@ pub fn add_user(
     conn: &Connection,
     server_sender: SP,
 ) -> Result<()> {
+    let new_id = Uuid::new_v4();
     let user = db::types::User {
-        id: db::types::Id(Uuid::new_v4()),
-        name: name,
-        sign_key: sign_key,
+        id: db::types::Id(new_id.clone()),
+        name: name.clone(),
+        sign_key: sign_key.clone(),
         insert_key: SSK::parse(&insert_key[..]).unwrap(),
         messages_count: 0,
     };
+    let user_jsoned = crate::api::response::User{
+        id: new_id.clone().to_string(),
+        name: name.clone(),
+        sign_key: sign_key.clone(),
+        insert_key: insert_key,
+        messages_count: 0
+    };
     db::users::add_user(user, &conn).unwrap();
     // Sending "Ok" response to client
+    //
+
+    load_users(conn, server_sender).unwrap();
+
+    // TODO senging only one user to client{
+    /*
     server_sender
         .send(PackedMessage::ToClient(
-            json!(AppStatus {
-                res_type: ResponseType::UserAdded
-            })
+            json!(ResponseType::UserAdded(user_jsoned))
             .to_string(),
         ))
         .unwrap();
+*/
     Ok(())
 }
