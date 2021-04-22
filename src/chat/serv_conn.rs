@@ -2,6 +2,7 @@ use super::serv_handler::to_server_sender;
 use crate::chat::types::{PackedMessage, RP, SP};
 use async_std::task;
 use fcpv2::types::traits::FcpParser;
+use regex::Regex;
 use serde_derive::Deserialize;
 use std::env;
 use tokio::{
@@ -50,6 +51,12 @@ async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) 
                     "SSKKeypair" => {
                         log::debug!("parsing keypair: {:?}", &req);
                         let keypair = fcpv2::types::SSKKeypair::parse(&received).unwrap();
+                        /*
+                        let id_regex = Regex::new(r"^(\w*-\w*)").unwrap();
+                        let identifier_type: String = id_regex
+                            .captures(&keypair.identifier[..])
+                            .expect("wrong type identifier")[0].to_string();
+                        */
                         match &keypair.identifier[..] {
                             "config-SSK" => {
                                 log::debug!("got SSKKeypair: {:?}", &keypair);
@@ -83,7 +90,9 @@ async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) 
                             }
                             _ => {}
                         }
-                    }
+                    },
+                    "DataFound" => {
+                    },
                     _ => {
                         log::debug!("unhandled: {}", &req);
                         client_sender

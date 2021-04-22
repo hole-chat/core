@@ -85,6 +85,13 @@ pub fn send_message(
     conn: &Connection,
     server_sender: SP,
 ) -> Result<()> {
+    log::debug!("CUM CUM");
+    log::debug!("CUM CUM");
+    log::debug!("CUM CUM");
+    log::debug!("CUM CUM");
+    log::debug!("CUM CUM");
+    log::debug!("CUM CUM");
+    log::debug!("CUM CUM");
     if let Ok(user_data) = db::users::get_user_by_id(user_id, conn) {
         // Add message to DB
         let key = user_data.insert_key;
@@ -95,7 +102,7 @@ pub fn send_message(
             date: chrono::offset::Local::now(),
             user_id: Id(uuid::Uuid::parse_str(identifier).expect("failed to parse user ID")),
             message: message.clone(),
-            from_me: false,
+            from_me: true,
         };
         let _ = db::messages::add_my_message(db_message, conn).unwrap();
         let fcp_req: String =
