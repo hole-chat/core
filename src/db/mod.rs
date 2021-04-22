@@ -12,7 +12,8 @@ fn create_db(conn: &Connection) -> Result<()> {
                   name                 TEXT UNIQUE NOT NULL,
                   sign_key             BLOB UNIQUE NOT NULL,
                   insert_key           BLOB UNIQUE NOT NULL,
-                  messages_count       INTEGER
+                  messages_count       INTEGER,
+                  my_messages_count    INTEGER
                   )",
         params![],
     ) {
@@ -35,7 +36,7 @@ fn create_db(conn: &Connection) -> Result<()> {
     match conn.execute(
         "CREATE TABLE my_messages (
                   id                      INTEGER PRIMARY KEY,
-                  user_id                 INTEGER NOT NULL,
+                  user_id                 BLOB NOT NULL,
                   date                    datetime NOT NULL,
                   message                 TEXT NOT NULL,
                   from_me              BOOL

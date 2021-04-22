@@ -96,20 +96,25 @@ pub fn send_message(
         // Add message to DB
         let key = user_data.insert_key;
         let identifier = &user_data.id.0.to_string()[..];
-        let message_id: u32 = user_data.messages_count;
+        let message_id: u32 = user_data.my_messages_count;
+        let id = Id(uuid::Uuid::parse_str(identifier).expect("failed to parse user ID"));
+        let _ = db::users::increase_my_messages_count(id.clone(), conn);
         let db_message = db::types::Message {
             id: message_id,
             date: chrono::offset::Local::now(),
-            user_id: Id(uuid::Uuid::parse_str(identifier).expect("failed to parse user ID")),
+            user_id: id.clone(),
             message: message.clone(),
             from_me: true,
         };
         let _ = db::messages::add_my_message(db_message, conn).unwrap();
+        log::debug!("sending new message to freent");
         let fcp_req: String =
-            ClientPut::new_default_direct(key, identifier, &message[..]).convert();
+            ClientPut::new_default_direct(fcpv2::types::USK{ ssk: key, path: format!("{}/{}", &identifier, message_id)}, &format!("{}/{}",  &identifier, &message_id )[..], &message[..]).convert();
         server_sender
             .send(PackedMessage::ToFreenet(fcp_req))
             .unwrap();
+        log::debug!("Increasing messages count");
+        let _ = db::users::increase_my_messages_count(id.clone(), &conn);
         Ok(())
     } else {
         // create error types
@@ -135,7 +140,7 @@ pub fn load_messages(
 ) -> Result<()> {
     let messages = db::messages::select_n_last_messages(user_id, start_index, count, conn).unwrap();
     let jsoned = json!(messages);
-    let _ = server_sender.send(PackedMessage::ToClient(jsoned.to_string()));
+    let _ = server_sender.send(PackedMessage::ToClient(jsoned.to_string())).unwrap();
     Ok(())
 
     //sending *JSON*
@@ -155,18 +160,20 @@ pub fn add_user(
         sign_key: sign_key.clone(),
         insert_key: SSK::parse(&insert_key[..]).unwrap(),
         messages_count: 0,
+        my_messages_count: 0,
     };
     let user_jsoned = crate::api::response::User{
         id: new_id.clone().to_string(),
         name: name.clone(),
         sign_key: sign_key.clone(),
         insert_key: insert_key,
-        messages_count: 0
+        messages_count: 0,
+        my_messages_count: 0
     };
     db::users::add_user(user, &conn).unwrap();
     // Sending "Ok" response to client
     //
-
+    //loading all users to frontend
     load_users(conn, server_sender).unwrap();
 
     // TODO senging only one user to client{

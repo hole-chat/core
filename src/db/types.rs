@@ -26,6 +26,7 @@ pub struct User {
     pub sign_key: SignKey,
     pub insert_key: InsertKey,
     pub messages_count: u32,
+    pub my_messages_count: u32,
 }
 
 /// converting SSK to rusqlite type
@@ -51,6 +52,7 @@ impl User {
             sign_key: self.sign_key,
             insert_key: SSK::convert(&self.insert_key),
             messages_count: self.messages_count,
+            my_messages_count: self.my_messages_count,
         }
     }
     pub fn from_jsonable(json: JsonableUser) -> io::Result<User> {
@@ -60,6 +62,7 @@ impl User {
             sign_key: json.sign_key,
             insert_key: SSK::parse(&json.insert_key[..]).unwrap(),
             messages_count: json.messages_count,
+            my_messages_count: json.my_messages_count,
         })
     }
 }

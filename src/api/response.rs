@@ -51,5 +51,6 @@ pub struct User {
     pub sign_key: SignKey,
     pub insert_key: InsertKey,
     pub messages_count: u32,
+    pub my_messages_count: u32,
 }
 
