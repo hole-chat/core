@@ -98,7 +98,6 @@ pub fn send_message(
         let identifier = &user_data.id.0.to_string()[..];
         let message_id: u32 = user_data.my_messages_count;
         let id = Id(uuid::Uuid::parse_str(identifier).expect("failed to parse user ID"));
-        let _ = db::users::increase_my_messages_count(id.clone(), conn);
         let db_message = db::types::Message {
             id: message_id,
             date: chrono::offset::Local::now(),
@@ -113,8 +112,7 @@ pub fn send_message(
         server_sender
             .send(PackedMessage::ToFreenet(fcp_req))
             .unwrap();
-        log::debug!("Increasing messages count");
-        let _ = db::users::increase_my_messages_count(id.clone(), &conn);
+        let _ = db::users::increase_my_messages_count(id.clone(), conn);
         Ok(())
     } else {
         // create error types

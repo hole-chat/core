@@ -28,15 +28,17 @@ pub async fn request_repeater(ss: SP) -> io::Result<()> {
             let id = user.id.0.to_string();
             let index = user.messages_count + 1;
 
+            let key = USK {
+                        ssk: parsed.private_key.clone(),
+                        path: format!("{}/{}", &id, &index),
+                    };
+            log::debug!("sending {:?}", &key.convert());
         match ss.send(PackedMessage::ToFreenet(
             ClientGet::new_default(
                 KEY::USK(
-                    USK {
-                        ssk: parsed.private_key.clone(),
-                        path: format!("{}/{}", &id, &index),
-                    }
+                  key
                 ),
-                &format!("rec;{};{}", &id, &index)[..], // TODO create Identifier type
+                &format!("new-message-{}/{}", &id, &index)[..], // TODO create Identifier type
                 ReturnType::Direct,
             )
             .convert(),

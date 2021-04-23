@@ -41,7 +41,7 @@ pub fn select_n_last_messages(
     conn: &Connection,
 ) -> Result<Vec<Message>> {
     let mut selected = conn.prepare(
-        "SELECT * FROM messages CROSS JOIN my_messages WHERE messages.user_id = ?1 or my_messages.user_id = ?1 ORDER BY date DESC LIMIT ?2",
+        "SELECT * FROM messages WHERE user_id = ?1 ORDER BY date DESC LIMIT ?2",
     )?;
     let message_iter = selected.query_map(params![user_id,  count], |row| ret_mes(row))?;
     let mut messages: Vec<Message> = Vec::new();
@@ -62,8 +62,8 @@ pub fn add_message(message: Message, conn: &Connection) -> Result<()> {
                   date,
                   message,
                   from_me
-                  ) VALUES (?1, ?2, ?3, ?4)",
-        params![message.id, message.user_id, message.date, message.message],
+                  ) VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![message.id, message.user_id, message.date, message.message, false],
     ) {
         Ok(_) => log::info!("message {:} added succsessfully!", message.id),
         Err(e) => {
@@ -76,7 +76,7 @@ pub fn add_message(message: Message, conn: &Connection) -> Result<()> {
 
 pub fn add_my_message(message: Message, conn: &Connection) -> Result<()> {
     match conn.execute(
-        "INSERT INTO my_messages (
+        "INSERT INTO messages (
                   id,
                   user_id,
                   date,

@@ -1,4 +1,5 @@
 use crate::chat::types::PackedMessage;
+use fcpv2::{types::traits::FcpParser, node::fcp_response::AllData};
 use crate::db;
 use async_std::{
     io,
@@ -101,14 +102,27 @@ async fn connection_for_receiving(
             }
             PackedMessage::FromFreenet(response) => {
                 let r = response.clone();
+                let res_type = r.lines().next();
                 log::debug!("Got:\n {}", &response);
-                async_std::task::block_on(
-                    sender
-                        // TODO freenet_response_handler
-                        .send(Message::Text(r.to_string())),
-                )
-                .expect("Couldn't send messge");
-                //     .await
+                match res_type {
+                    Some("AllData") => {
+                        let data = AllData::parse(&r).unwrap();
+                        log::debug!("GOT mESSAGE {}\n FROM FREENET: {}",data.identifier, data.data );
+                        server_sender.send(PackedMessage::ToClient(data.data));
+                        //TOOD parse identifier
+                        let (uuid, id)  = crate::api::identifier::parse_message_identifier(&data.identifier);
+                        log::debug!("parsed identifier: {:?} {:?}", uuid, id);
+                        /*async_std::task::block_on(
+                            sender
+                                // TODO freenet_response_handler
+                                .send(Message::Text(r.to_string())),
+                        )
+                        .expect("Couldn't send messge");
+                        */
+                    }
+                    None => {}
+                    _ => {}
+                }
                 //     .expect("Couldn't send messge");
             }
             _ => {}
@@ -117,7 +131,7 @@ async fn connection_for_receiving(
     }
     Ok(())
 }
-
+// sending ToClient messages to frontend
 async fn connection_for_sending(
     mut receiver: SplitStream<WebSocketStream<TcpStream>>,
     server_sender: SP,

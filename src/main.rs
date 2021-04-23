@@ -49,6 +49,7 @@ fn main() -> io::Result<()> {
     SimpleLogger::new().init().unwrap();
 
     let db = db::start_db().unwrap();
+    //let manager = r2d2_foodb::FooConnectionManager::new("localhost:1234");
 
     let (to_server_sender, server_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
         mpsc::channel();
