@@ -26,6 +26,7 @@ chrono = {version = "0.4.19", features = ["serde"]}
 uuid = {version = "0.8.2", features = ["serde" , "v4"]}
 regex = "1.4.5"
 r2d2_sqlite = "0.18.0"
+r2d2 = "0.8.9"
 
 [dependencies.fcpv2]
 path = "../FCPv2"

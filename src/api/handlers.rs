@@ -148,12 +148,12 @@ pub fn add_user(
     name: String,
     insert_key: String,
     sign_key: String,
+    id: uuid::Uuid,
     conn: &Connection,
     server_sender: SP,
 ) -> Result<()> {
-    let new_id = Uuid::new_v4();
     let user = db::types::User {
-        id: db::types::Id(new_id.clone()),
+        id: Id(id.clone()),
         name: name.clone(),
         sign_key: sign_key.clone(),
         insert_key: SSK::parse(&insert_key[..]).unwrap(),
@@ -161,7 +161,7 @@ pub fn add_user(
         my_messages_count: 0,
     };
     let user_jsoned = crate::api::response::User{
-        id: new_id.clone().to_string(),
+        id: id.clone().to_string(),
         name: name.clone(),
         sign_key: sign_key.clone(),
         insert_key: insert_key,

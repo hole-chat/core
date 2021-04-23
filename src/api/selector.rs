@@ -9,11 +9,14 @@ use rusqlite;
 use rusqlite::Connection;
 use serde_json::from_str;
 use serde_json::json;
+use r2d2::Pool;
+use r2d2_sqlite::SqliteConnectionManager;
 // server_sender sending data to server thread;
-pub fn request_selector(json: &str, server_sender: SP, conn: &Connection) -> Result<()> {
+pub fn request_selector(json: &str, server_sender: SP, conn: Pool<SqliteConnectionManager>,) -> Result<()> {
     // if let Ok(res) = from_str::<CreateInstanceReq>(&json) {
     //TODO v0.3 Add Instances     return Ok(());
     // }
+    let conn = conn.get().unwrap();
     log::info!("matching request...");
     let parsed: Request = serde_json::from_str(json).unwrap();
     match parsed {
@@ -62,7 +65,8 @@ pub fn request_selector(json: &str, server_sender: SP, conn: &Connection) -> Res
             name,
             sign_key,
             insert_key,
-        } => match handlers::add_user(name, insert_key, sign_key, &conn, server_sender.clone()) {
+            id
+        } => match handlers::add_user(name, insert_key, sign_key, id, &conn, server_sender.clone()) {
             Ok(_) => {}
             Err(_) => {}
         },

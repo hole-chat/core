@@ -28,6 +28,7 @@ pub enum Request {
         name: String,
         sign_key: String,
         insert_key: String,
+        id: uuid::Uuid,
     }, //    CreateInstance TODO v0.3
 }
 
@@ -76,12 +77,13 @@ fn request_LoadMessages_are_correct() {
 }
 #[test]
 fn request_AddUser_are_correct() {
-    let json = "{\"type\":\"addUser\",\"name\":\"john\",\"signKey\":\"USK@bxouok43eKpx3g4WmURjviGispWzYxeByiWRsmYOy5k,Y9j~lPDUoNlSTbZfDNaUajfePBrW~KM6uvHyOGWeA7Q,AQECAAE\",\"insertKey\":\"USK@bxouok43eKpx3g4WmURjviGispWzYxeByiWRsmYOy5k,Y9j~lPDUoNlSTbZfDNaUajfePBrW~KM6uvHyOGWeA7Q,AQECAAE\"}";
+    let json = "{\"type\":\"addUser\",\"name\":\"john\",\"signKey\":\"USK@bxouok43eKpx3g4WmURjviGispWzYxeByiWRsmYOy5k,Y9j~lPDUoNlSTbZfDNaUajfePBrW~KM6uvHyOGWeA7Q,AQECAAE\",\"insertKey\":\"USK@bxouok43eKpx3g4WmURjviGispWzYxeByiWRsmYOy5k,Y9j~lPDUoNlSTbZfDNaUajfePBrW~KM6uvHyOGWeA7Q,AQECAAE\",\"id\":\"2d12c305-eb79-489c-b643-f27f1e78a7c0\"\"}";
     let parsed: Request = serde_json::from_str(json).unwrap();
     assert_eq!(parsed, Request::AddUser{
         name: "john".to_string(),
         sign_key: "USK@bxouok43eKpx3g4WmURjviGispWzYxeByiWRsmYOy5k,Y9j~lPDUoNlSTbZfDNaUajfePBrW~KM6uvHyOGWeA7Q,AQECAAE".to_string(),
         insert_key: "USK@bxouok43eKpx3g4WmURjviGispWzYxeByiWRsmYOy5k,Y9j~lPDUoNlSTbZfDNaUajfePBrW~KM6uvHyOGWeA7Q,AQECAAE".to_string(),
+        id: uuid::Uuid::from_str("2d12c305-eb79-489c-b643-f27f1e78a7c0"),
     })
 
 }

@@ -6,11 +6,13 @@ use std::sync::mpsc::Sender;
 use std::path::Path;
 use std::fs::File;
 
+use r2d2_sqlite::SqliteConnectionManager;
+use r2d2::Pool;
 type SP = Sender<PackedMessage>;
 
-pub async fn request_repeater(ss: SP) -> io::Result<()> {
+pub async fn request_repeater(ss: SP, conn: Pool<SqliteConnectionManager>) -> io::Result<()> {
 
-    let db = crate::db::start_db().unwrap();
+    let db = conn.get().unwrap();
     //    loop {
     //TODO create a field with tracked users
     log::debug!("Request Repeater Started!");

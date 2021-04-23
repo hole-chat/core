@@ -46,8 +46,9 @@ use std::{
 
 
 fn main() -> io::Result<()> {
-    SimpleLogger::new().init().unwrap();
+    SimpleLogger::new().with_level(log::LevelFilter::Debug).init().unwrap();
 
+    //TODO Add connection pool for ruqlite
     let db = db::start_db().unwrap();
     //let manager = r2d2_foodb::FooConnectionManager::new("localhost:1234");
 

@@ -1,5 +1,4 @@
 use crate::chat::types::PackedMessage;
-use fcpv2::{types::traits::FcpParser, node::fcp_response::AllData};
 use crate::db;
 use async_std::{
     io,
@@ -7,6 +6,7 @@ use async_std::{
     task,
 };
 use async_tungstenite::{accept_async, tungstenite::Message, WebSocketStream};
+use fcpv2::{node::fcp_response::AllData, types::traits::FcpParser};
 use futures::{
     stream::{SplitSink, SplitStream},
     SinkExt, StreamExt,
@@ -21,6 +21,8 @@ use super::stay_awake::request_repeater;
 use super::types::{RP, SP};
 
 use crate::api::selector::request_selector;
+use r2d2::Pool;
+use r2d2_sqlite::SqliteConnectionManager;
 
 #[derive(Deserialize, Debug)]
 struct FrontMsg {
@@ -33,7 +35,7 @@ struct FrontMsg {
 pub fn listen_client(
     server_sender: SP,
     client_receiver: RP,
-    conn: rusqlite::Connection,
+    conn: Pool<SqliteConnectionManager>,
 ) -> io::Result<()> {
     task::block_on(connect_to_client(server_sender, client_receiver, conn))
 }
@@ -41,7 +43,7 @@ pub fn listen_client(
 async fn connect_to_client(
     server_sender: SP,
     client_receiver: RP,
-    conn: rusqlite::Connection,
+    conn: Pool<SqliteConnectionManager>,
 ) -> io::Result<()> {
     let addr = env::args()
         .nth(1)
@@ -69,9 +71,14 @@ async fn connect_to_client(
             sender,
             client_receiver,
             client_repeater,
+            conn.clone(),
         ));
-        let t2 = task::spawn(connection_for_sending(receiver, server_sender, conn));
-        let t3 = task::spawn(request_repeater(ss));
+        let t2 = task::spawn(connection_for_sending(
+            receiver,
+            server_sender,
+            conn.clone(),
+        ));
+        let t3 = task::spawn(request_repeater(ss, conn.clone()));
         t1.await?;
         t3.await?;
         t2.await?;
@@ -84,9 +91,11 @@ async fn connection_for_receiving(
     mut sender: SplitSink<WebSocketStream<TcpStream>, Message>,
     client_receiver: RP,
     server_sender: SP,
+    conn: Pool<SqliteConnectionManager>,
 ) -> io::Result<()> {
     log::info!("Connection for receiving launched");
     //    let mut prev: PackedMessage = PackedMessage::FromFreenet("nothing".to_string());
+    let db = conn.get().unwrap();
     while let Ok(res) = client_receiver.recv() {
         //TODO call client get after receiving NodeHello
         // log::debug!("RES {:?}", &res);
@@ -107,11 +116,29 @@ async fn connection_for_receiving(
                 match res_type {
                     Some("AllData") => {
                         let data = AllData::parse(&r).unwrap();
-                        log::debug!("GOT mESSAGE {}\n FROM FREENET: {}",data.identifier, data.data );
-                        server_sender.send(PackedMessage::ToClient(data.data));
+                        log::debug!(
+                            "GOT mESSAGE {}\n FROM FREENET: {}",
+                            &data.identifier,
+                            &data.data
+                        );
+                        server_sender.send(PackedMessage::ToClient(data.data.clone()));
                         //TOOD parse identifier
-                        let (uuid, id)  = crate::api::identifier::parse_message_identifier(&data.identifier);
+                        let (uuid, id) =
+                            crate::api::identifier::parse_message_identifier(&data.identifier);
                         log::debug!("parsed identifier: {:?} {:?}", uuid, id);
+                        let jsoned: crate::api::types::Message =
+                            serde_json::from_str(&data.data[..]).unwrap();
+                        crate::db::messages::add_message(
+                            crate::db::types::Message {
+                                id: id,
+                                date: jsoned.date,
+                                user_id: jsoned.id,
+                                message: jsoned.message,
+                                from_me: jsoned.from_me,
+                            },
+                            &db,
+                        )
+                        .unwrap()
                         /*async_std::task::block_on(
                             sender
                                 // TODO freenet_response_handler
@@ -135,7 +162,7 @@ async fn connection_for_receiving(
 async fn connection_for_sending(
     mut receiver: SplitStream<WebSocketStream<TcpStream>>,
     server_sender: SP,
-    conn: rusqlite::Connection,
+    conn: Pool<SqliteConnectionManager>,
 ) -> io::Result<()> {
     let ss = server_sender.clone();
     log::info!("Connection for sending launched");
@@ -144,7 +171,7 @@ async fn connection_for_sending(
         if let Some(msg) = new_msg.await {
             let jsoned = msg.expect("Falied to unwrap gotted message");
             log::info!("new request");
-            match request_selector(&jsoned.to_string()[..], server_sender.clone(), &conn) {
+            match request_selector(&jsoned.to_string()[..], server_sender.clone(), conn.clone()) {
                 Ok(_) => {}
                 Err(e) => {
                     log::error!("{}", e);
