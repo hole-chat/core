@@ -3,6 +3,9 @@ use crate::db::types::User as SqliteUser;
 use serde_derive::{Deserialize, Serialize};
 use tungstenite::http::Response;
 pub type InsertKey = String;
+
+use crate::db::types::Id;
+use crate::api::types::Message;
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 #[serde(tag = "type")]
@@ -23,6 +26,11 @@ pub enum ResponseType {
     },
     UserList {
      users: Vec<User>,
+    },
+#[serde(rename_all = "camelCase")]
+    MessageList{
+        id: uuid::Uuid,
+        messages: Vec<Message>
     }
 }
 #[derive(Serialize, Deserialize)]

@@ -6,6 +6,6 @@ use serde::{Serialize, Deserialize};
 pub struct Message {
     pub message: String,
     pub date: Time,
-    pub id: Id,
+    pub id: uuid::Uuid,
     pub from_me: bool,
 }

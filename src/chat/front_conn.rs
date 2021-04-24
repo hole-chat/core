@@ -1,5 +1,6 @@
 use crate::chat::types::PackedMessage;
 use crate::db;
+use crate::db::types::Id;
 use async_std::{
     io,
     net::{TcpListener, TcpStream},
@@ -132,7 +133,7 @@ async fn connection_for_receiving(
                             crate::db::types::Message {
                                 id: id,
                                 date: jsoned.date,
-                                user_id: jsoned.id,
+                                user_id: Id(jsoned.id),
                                 message: jsoned.message,
                                 from_me: jsoned.from_me,
                             },
@@ -148,11 +149,14 @@ async fn connection_for_receiving(
                         */
                     }
                     None => {}
-                    _ => {}
+                    _ => {
+                        log::debug!("Got message from Freenet:\n {:?}", &r )
+                    }
                 }
                 //     .expect("Couldn't send messge");
             }
-            _ => {}
+            _ => {
+            }
         }
         // }
     }

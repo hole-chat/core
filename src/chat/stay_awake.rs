@@ -20,6 +20,7 @@ pub async fn request_repeater(ss: SP, conn: Pool<SqliteConnectionManager>) -> io
     let parsed: crate::chat::Config =  toml::from_str(&config[..]).unwrap();
 
     log::debug!("Config gotted: {:?}", &config);
+//    let identifier_fil = File::open( ) ;
 
     loop {
         let users: Vec<crate::db::types::User> = crate::db::users::load_all_users(&db).unwrap();

@@ -1,10 +1,11 @@
 use super::response::User;
 use super::response::{AppStatus, ResponseType};
 use crate::api::request::Request;
+use crate::api::types::Message as FrontMessage;
 use crate::chat::init_config;
 use crate::chat::types::PackedMessage;
 use crate::chat::types::SP;
-use crate::db::{self, messages, types, users};
+use crate::db::{self, messages, types::Message as DbMessage, users};
 use async_std::io::Result;
 use fcpv2::client::fcp_types::{ClientHello, ClientPut};
 use fcpv2::types::{
@@ -85,13 +86,6 @@ pub fn send_message(
     conn: &Connection,
     server_sender: SP,
 ) -> Result<()> {
-    log::debug!("CUM CUM");
-    log::debug!("CUM CUM");
-    log::debug!("CUM CUM");
-    log::debug!("CUM CUM");
-    log::debug!("CUM CUM");
-    log::debug!("CUM CUM");
-    log::debug!("CUM CUM");
     if let Ok(user_data) = db::users::get_user_by_id(user_id, conn) {
         // Add message to DB
         let key = user_data.insert_key;
@@ -106,9 +100,9 @@ pub fn send_message(
             from_me: true,
         };
         let _ = db::messages::add_my_message(db_message, conn).unwrap();
-        log::debug!("sending new message to freent");
+        log::debug!("Sending new message to freent...");
         let fcp_req: String =
-            ClientPut::new_default_direct(fcpv2::types::USK{ ssk: key, path: format!("{}/{}", &identifier, message_id)}, &format!("{}/{}",  &identifier, &message_id )[..], &message[..]).convert();
+            ClientPut::new_default_direct(fcpv2::types::USK{ ssk: key, path: format!("{}/{}", &identifier, message_id)}, &format!("new-messge-{}/{}",  &identifier, &message_id )[..], &message[..]).convert();
         server_sender
             .send(PackedMessage::ToFreenet(fcp_req))
             .unwrap();
@@ -136,8 +130,18 @@ pub fn load_messages(
     conn: &Connection,
     server_sender: SP,
 ) -> Result<()> {
-    let messages = db::messages::select_n_last_messages(user_id, start_index, count, conn).unwrap();
-    let jsoned = json!(messages);
+    let messages: Vec<DbMessage> = db::messages::select_n_last_messages(user_id.clone(), start_index, count, conn).unwrap();
+    let jsoned = json!(
+        ResponseType::MessageList{
+            messages: messages.into_iter().map(|msg| -> FrontMessage {return FrontMessage{
+                message: msg.message,
+                date: msg.date,
+                id: user_id.0,
+                from_me: msg.from_me,
+            }}).collect(),
+            id: user_id.0
+        }
+    );
     let _ = server_sender.send(PackedMessage::ToClient(jsoned.to_string())).unwrap();
     Ok(())
 
