@@ -18,9 +18,7 @@ pub async fn request_repeater(ss: SP, conn: Pool<SqliteConnectionManager>) -> io
     log::debug!("Request Repeater Started!");
     let config: String = String::from_utf8_lossy(&std::fs::read(".hole.toml")?).parse().unwrap();
     let parsed: crate::chat::Config =  toml::from_str(&config[..]).unwrap();
-
     log::debug!("Config gotted: {:?}", &config);
-//    let identifier_fil = File::open( ) ;
 
     loop {
         let users: Vec<crate::db::types::User> = crate::db::users::load_all_users(&db).unwrap();
@@ -29,7 +27,7 @@ pub async fn request_repeater(ss: SP, conn: Pool<SqliteConnectionManager>) -> io
         log::debug!("enough sleep");
         for user in users {
             let id = user.id.0.to_string();
-            let index = user.messages_count + 1;
+            let index = user.messages_count;
 
             let key = USK {
                         ssk: parsed.private_key.clone(),
@@ -45,7 +43,9 @@ pub async fn request_repeater(ss: SP, conn: Pool<SqliteConnectionManager>) -> io
                 ReturnType::Direct,
             )
             .convert(),
-        )) {
+
+        ))
+            {
             Ok(_) => {},
             Err(e) => continue ,
       }

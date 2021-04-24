@@ -122,24 +122,24 @@ async fn connection_for_receiving(
                             &data.identifier,
                             &data.data
                         );
-                        server_sender.send(PackedMessage::ToClient(data.data.clone()));
-                        //TOOD parse identifier
-                        let (uuid, id) =
+                        server_sender.send(PackedMessage::ToClient(data.data.clone())).unwrap();
+                        let (_, id) =
                             crate::api::identifier::parse_message_identifier(&data.identifier);
-                        log::debug!("parsed identifier: {:?} {:?}", uuid, id);
                         let jsoned: crate::api::types::Message =
                             serde_json::from_str(&data.data[..]).unwrap();
+                        let uid = Id(jsoned.id);
                         crate::db::messages::add_message(
                             crate::db::types::Message {
                                 id: id,
                                 date: jsoned.date,
-                                user_id: Id(jsoned.id),
+                                user_id: uid.clone(),
                                 message: jsoned.message,
                                 from_me: jsoned.from_me,
                             },
                             &db,
                         )
-                        .unwrap()
+                        .unwrap();
+                        crate::db::users::increase_my_messages_count(uid.clone(), &db).unwrap();
                         /*async_std::task::block_on(
                             sender
                                 // TODO freenet_response_handler

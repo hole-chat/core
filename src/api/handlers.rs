@@ -92,6 +92,10 @@ pub fn send_message(
         let identifier = &user_data.id.0.to_string()[..];
         let message_id: u32 = user_data.my_messages_count;
         let id = Id(uuid::Uuid::parse_str(identifier).expect("failed to parse user ID"));
+
+        let config: String = String::from_utf8_lossy(&std::fs::read(".hole.toml")?).parse().unwrap();
+        let parsed: crate::chat::Config =  toml::from_str(&config[..]).unwrap();
+        let my_id = parsed.id.0.to_string();
         let db_message = db::types::Message {
             id: message_id,
             date: chrono::offset::Local::now(),
@@ -102,7 +106,7 @@ pub fn send_message(
         let _ = db::messages::add_my_message(db_message, conn).unwrap();
         log::debug!("Sending new message to freent...");
         let fcp_req: String =
-            ClientPut::new_default_direct(fcpv2::types::USK{ ssk: key, path: format!("{}/{}", &identifier, message_id)}, &format!("new-messge-{}/{}",  &identifier, &message_id )[..], &message[..]).convert();
+            ClientPut::new_default_direct(fcpv2::types::USK{ ssk: key, path: format!("{}/{}", &my_id, message_id)}, &format!("new-messge-{}/{}",  &identifier, &message_id )[..], &message[..]).convert();
         server_sender
             .send(PackedMessage::ToFreenet(fcp_req))
             .unwrap();
