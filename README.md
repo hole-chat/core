@@ -13,6 +13,12 @@ A decentralized chat over [Freenet](https://freenetproject.org).
 1. Clone [this](https://github.com/hole-chat/core) repo 
 2. Launch core (`cargo run`)
 3. Install and launch client (for example [rabbit-hole](https://github.com/hole-chat/rabbit-hole))
+---- 
+## About frontend clients 🖌️
+The purpose of "hole project" is to write independend frontend clients for each platform, because, **app cannot be good for one particular platform if it's multiplatform.** 
+As a hole-core is just a logic part, which should be multiplatform, **frontend shouldn't**, And I urge you to help and write "rabbit-hole for android" or "rabbit-hole-gtk", etc...
+
+----
 
 # TODO ☑️
 - [x] Basic sending and receiving messages 💌
