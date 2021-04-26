@@ -16,7 +16,7 @@ A decentralized chat over [Freenet](https://freenetproject.org).
 ---- 
 ## About frontend clients 🖌️
 The purpose of "hole project" is to write independend frontend clients for each platform, because, **app cannot be good for one particular platform if it's multiplatform.** 
-As a hole-core is just a logic part, which should be multiplatform, **frontend shouldn't**, And I urge you to help and write "rabbit-hole for android" or "rabbit-hole-gtk", etc...
+As a hole-core is just a logic part, which should be multiplatform, **frontend shouldn't**, And I encourage you to help and write "rabbit-hole for android" or "rabbit-hole-gtk", etc...
 
 ----
 
