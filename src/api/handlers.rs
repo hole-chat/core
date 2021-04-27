@@ -22,6 +22,7 @@ use uuid::Uuid;
 use crate::db::types::Id;
 
 pub fn start_app(server_sender: SP) -> Result<()> {
+    log::debug!("Sending ClientHello to freenet");
     server_sender
         .send(PackedMessage::ToFreenet(
             ClientHello::new("start_app_request".to_string(), 2.0).convert(),
@@ -42,9 +43,12 @@ pub fn start_app(server_sender: SP) -> Result<()> {
                 .unwrap()
         }
         Ok(res) => {
+            log::debug!("Reading config path... ");
             let conf = std::fs::read_to_string(&config_path).unwrap();
-            log::debug!("Responsing to start_app: {}", &conf);
+            log::debug!("Parsing config to toml.. ");
             let toml: crate::chat::Config = toml::from_str(&conf[..]).unwrap();
+
+            log::debug!("Sending config to client thread...");
             server_sender
                 .send(PackedMessage::ToClient(
                     serde_json::to_string(&crate::api::response::ResponseType::InitialConfig {
@@ -68,15 +72,18 @@ pub fn stop_app(conn: &Connection, server_sender: SP) -> Result<()> {
 }
 
 pub fn load_users(conn: &Connection, server_sender: SP) -> Result<()> {
+    log::debug!("Getting user list from DB... ");
     let jsoned_users: Vec<_> = users::load_all_users(conn)
         .unwrap()
         .into_iter()
         .map(|x| x.to_jsonable())
         .collect();
+    log::debug!("Creatin user list JSON... ");
     let users: String = serde_json::to_string(&crate::api::response::ResponseType::UserList {
         users: jsoned_users,
     })
     .unwrap();
+    log::debug!("Sending users to client thread... ");
     let _ = server_sender.send(PackedMessage::ToClient(users)).unwrap();
     Ok(())
 }
@@ -93,7 +100,9 @@ pub fn send_message(
         let message_id: u32 = user_data.my_messages_count;
         let id = Id(uuid::Uuid::parse_str(identifier).expect("failed to parse user ID"));
 
+        log::debug!("Reading .hole.toml");
         let config: String = String::from_utf8_lossy(&std::fs::read(".hole.toml")?).parse().unwrap();
+        log::debug!("Parsing .hole.toml");
         let parsed: crate::chat::Config =  toml::from_str(&config[..]).unwrap();
         let my_id = parsed.id.0.to_string();
         let db_message = db::types::Message {
@@ -103,17 +112,22 @@ pub fn send_message(
             message: message.clone(),
             from_me: true,
         };
-        let _ = db::messages::add_my_message(db_message, conn).unwrap();
+        log::debug!("Adding sended message to DB");
+        match  db::messages::add_my_message(db_message, conn) {
+            Ok(_) => {},
+            Err(e) => {log::error!("Failed to add message to DB");},
+        }
         log::debug!("Sending new message to freent...");
         let fcp_req: String =
             ClientPut::new_default_direct(fcpv2::types::USK{ ssk: key, path: format!("{}/{}", &my_id, message_id)}, &format!("new-messge-{}/{}",  &identifier, &message_id )[..], &message[..]).convert();
         server_sender
             .send(PackedMessage::ToFreenet(fcp_req))
             .unwrap();
-        let _ = db::users::increase_my_messages_count(id.clone(), conn);
+        let _ = db::users::increase_my_messages_count(id.clone(), conn).unwrap();
         Ok(())
     } else {
         // create error types
+        log::error!("No such user in DB..");
         server_sender
             .send(PackedMessage::ToClient(
                 json!(super::response::AppError {
@@ -134,6 +148,7 @@ pub fn load_messages(
     conn: &Connection,
     server_sender: SP,
 ) -> Result<()> {
+    log::debug!("Loading {} messages from user {:?}...", &count, &user_id);
     let messages: Vec<DbMessage> = db::messages::select_n_last_messages(user_id.clone(), start_index, count, conn).unwrap();
     let jsoned = json!(
         ResponseType::MessageList{
@@ -146,6 +161,7 @@ pub fn load_messages(
             id: user_id.0
         }
     );
+    log::debug!("Sending loaded messages to client...");
     let _ = server_sender.send(PackedMessage::ToClient(jsoned.to_string())).unwrap();
     Ok(())
 
@@ -160,6 +176,7 @@ pub fn add_user(
     conn: &Connection,
     server_sender: SP,
 ) -> Result<()> {
+    log::debug!("Retreiving user data from DB...");
     let user = db::types::User {
         id: Id(id.clone()),
         name: name.clone(),
@@ -176,10 +193,12 @@ pub fn add_user(
         messages_count: 0,
         my_messages_count: 0
     };
+    log::debug!("Adding new user to DB...");
     db::users::add_user(user, &conn).unwrap();
     // Sending "Ok" response to client
     //
     //loading all users to frontend
+    log::debug!("Loading all users to client...");
     load_users(conn, server_sender).unwrap();
 
     // TODO senging only one user to client{

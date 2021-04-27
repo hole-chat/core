@@ -91,7 +91,15 @@ async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) 
                             _ => {}
                         }
                     },
-                    "DataFound" => {
+                    "aDataFound" => {
+                        log::debug!("Receive a new message!!! {:?}", &received);
+                        let message = fcpv2::node::fcp_response::AllData::parse(&received[..]).unwrap();
+                        log::debug!("Parse new message!!!! {:?}", &message);
+                    },
+                    "AllData" => {
+                        log::debug!("Receive a new message!!! {:?}", &received);
+                        let message = fcpv2::node::fcp_response::AllData::parse(&received[..]).unwrap();
+                        log::debug!("Parse new message!!!! {:?}", &message);
                     },
                     _ => {
                         log::debug!("unhandled: {}", &req);

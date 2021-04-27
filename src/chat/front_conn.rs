@@ -74,6 +74,7 @@ async fn connect_to_client(
             client_repeater,
             conn.clone(),
         ));
+        log::debug!("launching connection for sending...");
         let t2 = task::spawn(connection_for_sending(
             receiver,
             server_sender,
@@ -106,25 +107,28 @@ async fn connection_for_receiving(
         // log::debug!("they are different");
         match res {
             PackedMessage::FromCore(json) => {
+                log::debug!("Sending message FromCore to frontend...");
                 async_std::task::block_on(sender.send(Message::Text(json.clone())))
                     .expect("Couldn't send message");
-                log::debug!("Message sended to frontend: {}", json.clone());
             }
             PackedMessage::FromFreenet(response) => {
                 let r = response.clone();
                 let res_type = r.lines().next();
-                log::debug!("Got:\n {}", &response);
+                log::debug!("Got message {:?} from freenet:\n", &res_type);
                 match res_type {
                     Some("AllData") => {
+                        log::debug!("Parsing AllData...");
                         let data = AllData::parse(&r).unwrap();
                         log::debug!(
                             "GOT mESSAGE {}\n FROM FREENET: {}",
                             &data.identifier,
                             &data.data
                         );
+                        log::debug!("Sending data to client...");
                         server_sender.send(PackedMessage::ToClient(data.data.clone())).unwrap();
                         let (_, id) =
                             crate::api::identifier::parse_message_identifier(&data.identifier);
+                        log::debug!("Parsing data to json...");
                         let jsoned: crate::api::types::Message =
                             serde_json::from_str(&data.data[..]).unwrap();
                         let uid = Id(jsoned.id);
@@ -139,6 +143,7 @@ async fn connection_for_receiving(
                             &db,
                         )
                         .unwrap();
+                        log::debug!("Increasing messages count...");
                         crate::db::users::increase_my_messages_count(uid.clone(), &db).unwrap();
                         /*async_std::task::block_on(
                             sender
@@ -162,6 +167,7 @@ async fn connection_for_receiving(
     }
     Ok(())
 }
+// gets Request from frontend
 // sending ToClient messages to frontend
 async fn connection_for_sending(
     mut receiver: SplitStream<WebSocketStream<TcpStream>>,
