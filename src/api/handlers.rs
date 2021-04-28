@@ -125,7 +125,7 @@ pub fn send_message(
         }
 
         let freenet_message = crate::api::response::FreenetMessage {
-            id: id.clone().0,
+            id: parsed.id.0, // My identifier
             message: message.clone(),
             date: date.clone(),
         };

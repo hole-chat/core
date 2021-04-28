@@ -3,6 +3,7 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
+#[serde(tag = "type")]
 pub struct Message {
     pub message: String,
     pub date: Time,

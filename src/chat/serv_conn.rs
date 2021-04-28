@@ -1,5 +1,5 @@
-use crate::api::types::Message as FrontMessage;
 use super::serv_handler::to_server_sender;
+use crate::api::types::Message as FrontMessage;
 use crate::chat::types::{PackedMessage, RP, SP};
 use async_std::task;
 use fcpv2::types::traits::FcpParser;
@@ -102,30 +102,29 @@ async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) 
                         log::debug!("\n\n\n\n\n AAAAAAAAA {:?} \n\n\n\n", captured);
                         let data_length: usize = usize::from_str_radix(&captured[4], 10).unwrap();
                         let message = &captured[7][0..data_length].to_string();
-                        let parsed_message =
-                            serde_json::from_str::<crate::api::response::FreenetMessage>(&message[..]);
+                        let parsed_message = serde_json::from_str::<
+                            crate::api::response::FreenetMessage,
+                        >(&message[..]);
                         match parsed_message {
                             Ok(json) => {
-                                let front_message = FrontMessage{
+                                let front_message = FrontMessage {
                                     date: json.date,
                                     from_me: false,
                                     id: json.id,
                                     message: json.message,
                                 };
-                                client_sender.send(PackedMessage::ToClient(serde_json::to_string(&front_message).unwrap())).unwrap();
+                                client_sender
+                                    .send(PackedMessage::FromCore(
+                                        serde_json::to_string(&front_message).unwrap(),
+                                    ))
+                                    .unwrap();
+                                log::debug!("Send gotted message to frontend...");
                             }
                             Err(_) => {
                                 log::error!("Failed to parse gotted message");
                             }
                         }
-                        log::debug!("Parse new message!!!! {:?}", &message);
 
-                        client_sender
-                                    .send(PackedMessage::ToClient(
-                                        message.to_string(),
-                                    ))
-                                    .unwrap();
-                        let mut lines = &received.clone().lines();
                     }
                     "AllData" => {
                         log::debug!("Receive a new message!!! {:?}", &received);
