@@ -31,7 +31,7 @@ pub async fn request_repeater(ss: SP, conn: Pool<SqliteConnectionManager>) -> io
 
             let key = USK {
                         ssk: parsed.private_key.clone(),
-                        path: format!("{}/{}", &id, &index),
+                        path: format!("{}/{}", &id, &index + 2),
                     };
             log::debug!("sending {:?}", &key.convert());
         match ss.send(PackedMessage::ToFreenet(
@@ -39,7 +39,7 @@ pub async fn request_repeater(ss: SP, conn: Pool<SqliteConnectionManager>) -> io
                 KEY::USK(
                   key
                 ),
-                &format!("new-message-{}/{}", &id, &index)[..], // TODO create Identifier type
+                &format!("new-message-{}/{}", &id, &index + 2)[..], // TODO create Identifier type
                 ReturnType::Direct,
             )
             .convert(),

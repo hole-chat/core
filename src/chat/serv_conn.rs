@@ -1,3 +1,4 @@
+use crate::api::types::Message as FrontMessage;
 use super::serv_handler::to_server_sender;
 use crate::chat::types::{PackedMessage, RP, SP};
 use async_std::task;
@@ -90,17 +91,46 @@ async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) 
                             }
                             _ => {}
                         }
-                    },
-                    "aDataFound" => {
-                        log::debug!("Receive a new message!!! {:?}", &received);
-                        let message = fcpv2::node::fcp_response::AllData::parse(&received[..]).unwrap();
+                    }
+                    "DataFound" => {
+                        log::debug!("Receive a new message!!! {:?}", &received.trim());
+                        let rec = received.clone();
+                        let splitted: Vec<&str> = rec.split_inclusive("AllDatan").collect();
+                        log::debug!("\n\n\n\n\n AAAAAAAAA \n\n\n\n");
+                        let reg = Regex::new("AllData\nIdentifier=(.*)\nCompletionTime=(.*)\nStartupTime=(.*)\nDataLength=(.*)\nGlobal=(.*)\nMetadata.ContentType=(.*)\nData\n((.|\n)*)").unwrap();
+                        let captured = reg.captures(&received[..]).unwrap();
+                        log::debug!("\n\n\n\n\n AAAAAAAAA {:?} \n\n\n\n", captured);
+                        let data_length: usize = usize::from_str_radix(&captured[4], 10).unwrap();
+                        let message = &captured[7][0..data_length].to_string();
+                        let parsed_message =
+                            serde_json::from_str::<crate::api::response::FreenetMessage>(&message[..]);
+                        match parsed_message {
+                            Ok(json) => {
+                                let front_message = FrontMessage{
+                                    date: json.date,
+                                    from_me: false,
+                                    id: json.id,
+                                    message: json.message,
+                                };
+                                client_sender.send(PackedMessage::ToClient(serde_json::to_string(&front_message).unwrap())).unwrap();
+                            }
+                            Err(_) => {
+                                log::error!("Failed to parse gotted message");
+                            }
+                        }
                         log::debug!("Parse new message!!!! {:?}", &message);
-                    },
+                    }
                     "AllData" => {
                         log::debug!("Receive a new message!!! {:?}", &received);
-                        let message = fcpv2::node::fcp_response::AllData::parse(&received[..]).unwrap();
+                        let message =
+                            fcpv2::node::fcp_response::AllData::parse(&received[..]).unwrap();
                         log::debug!("Parse new message!!!! {:?}", &message);
-                    },
+                        let mut lines = &received.clone().lines();
+
+                        //while (&lines.next() != &Some("AllData")){
+                        //   &lines.next();
+                        //}
+                    }
                     _ => {
                         log::debug!("unhandled: {}", &req);
                         client_sender

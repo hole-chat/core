@@ -101,25 +101,45 @@ pub fn send_message(
         let id = Id(uuid::Uuid::parse_str(identifier).expect("failed to parse user ID"));
 
         log::debug!("Reading .hole.toml");
-        let config: String = String::from_utf8_lossy(&std::fs::read(".hole.toml")?).parse().unwrap();
+        let config: String = String::from_utf8_lossy(&std::fs::read(".hole.toml")?)
+            .parse()
+            .unwrap();
         log::debug!("Parsing .hole.toml");
-        let parsed: crate::chat::Config =  toml::from_str(&config[..]).unwrap();
+        let parsed: crate::chat::Config = toml::from_str(&config[..]).unwrap();
         let my_id = parsed.id.0.to_string();
+        let date = chrono::offset::Local::now();
         let db_message = db::types::Message {
             id: message_id,
-            date: chrono::offset::Local::now(),
+            date: date.clone(),
             user_id: id.clone(),
             message: message.clone(),
             from_me: true,
         };
+
         log::debug!("Adding sended message to DB");
-        match  db::messages::add_my_message(db_message, conn) {
-            Ok(_) => {},
-            Err(e) => {log::error!("Failed to add message to DB");},
+        match db::messages::add_my_message(db_message, conn) {
+            Ok(_) => {}
+            Err(e) => {
+                log::error!("Failed to add message to DB");
+            }
         }
+
+        let freenet_message = crate::api::response::FreenetMessage {
+            id: id.clone().0,
+            message: message.clone(),
+            date: date.clone(),
+        };
+
         log::debug!("Sending new message to freent...");
-        let fcp_req: String =
-            ClientPut::new_default_direct(fcpv2::types::USK{ ssk: key, path: format!("{}/{}", &my_id, message_id)}, &format!("new-messge-{}/{}",  &identifier, &message_id )[..], &message[..]).convert();
+        let fcp_req: String = ClientPut::new_default_direct(
+            fcpv2::types::USK {
+                ssk: key,
+                path: format!("{}/{}", &my_id, message_id),
+            },
+            &format!("new-messge-{}/{}", &identifier, &message_id)[..],
+            &serde_json::to_string(&freenet_message).unwrap()[..],
+        )
+        .convert();
         server_sender
             .send(PackedMessage::ToFreenet(fcp_req))
             .unwrap();
@@ -149,20 +169,26 @@ pub fn load_messages(
     server_sender: SP,
 ) -> Result<()> {
     log::debug!("Loading {} messages from user {:?}...", &count, &user_id);
-    let messages: Vec<DbMessage> = db::messages::select_n_last_messages(user_id.clone(), start_index, count, conn).unwrap();
-    let jsoned = json!(
-        ResponseType::MessageList{
-            messages: messages.into_iter().map(|msg| -> FrontMessage {return FrontMessage{
-                message: msg.message,
-                date: msg.date,
-                id: user_id.0,
-                from_me: msg.from_me,
-            }}).collect(),
-            id: user_id.0
-        }
-    );
+    let messages: Vec<DbMessage> =
+        db::messages::select_n_last_messages(user_id.clone(), start_index, count, conn).unwrap();
+    let jsoned = json!(ResponseType::MessageList {
+        messages: messages
+            .into_iter()
+            .map(|msg| -> FrontMessage {
+                return FrontMessage {
+                    message: msg.message,
+                    date: msg.date,
+                    id: user_id.0,
+                    from_me: msg.from_me,
+                };
+            })
+            .collect(),
+        id: user_id.0
+    });
     log::debug!("Sending loaded messages to client...");
-    let _ = server_sender.send(PackedMessage::ToClient(jsoned.to_string())).unwrap();
+    let _ = server_sender
+        .send(PackedMessage::ToClient(jsoned.to_string()))
+        .unwrap();
     Ok(())
 
     //sending *JSON*
@@ -185,13 +211,13 @@ pub fn add_user(
         messages_count: 0,
         my_messages_count: 0,
     };
-    let user_jsoned = crate::api::response::User{
+    let user_jsoned = crate::api::response::User {
         id: id.clone().to_string(),
         name: name.clone(),
         sign_key: sign_key.clone(),
         insert_key: insert_key,
         messages_count: 0,
-        my_messages_count: 0
+        my_messages_count: 0,
     };
     log::debug!("Adding new user to DB...");
     db::users::add_user(user, &conn).unwrap();
@@ -203,12 +229,12 @@ pub fn add_user(
 
     // TODO senging only one user to client{
     /*
-    server_sender
-        .send(PackedMessage::ToClient(
-            json!(ResponseType::UserAdded(user_jsoned))
-            .to_string(),
-        ))
-        .unwrap();
-*/
+        server_sender
+            .send(PackedMessage::ToClient(
+                json!(ResponseType::UserAdded(user_jsoned))
+                .to_string(),
+            ))
+            .unwrap();
+    */
     Ok(())
 }

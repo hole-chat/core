@@ -4,20 +4,25 @@ use serde_derive::{Deserialize, Serialize};
 use tungstenite::http::Response;
 pub type InsertKey = String;
 
-use crate::db::types::Id;
+use crate::db::types::{Id, Time};
 use crate::api::types::Message;
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 #[serde(tag = "type")]
 pub enum ResponseType {
     Error,
-    NewMessage,
+#[serde(rename_all = "camelCase")]
+    UserAdded(User),
+    NewMessage {
+        date: Time,
+        from_me: bool,
+        id: uuid::Uuid,
+        message: String,
+    },
     NewUser,
     FetchedMessages,
     InstanceCreated,
     InstanceAccepted,
-#[serde(rename_all = "camelCase")]
-    UserAdded(User),
 #[serde(rename_all = "camelCase")]
     InitialConfig {
         id: crate::db::types::Id,
@@ -62,3 +67,11 @@ pub struct User {
     pub my_messages_count: u32,
 }
 
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct FreenetMessage {
+    pub id: uuid::Uuid,
+    pub message: String,
+    pub date: Time,
+}
