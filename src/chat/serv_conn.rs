@@ -119,13 +119,19 @@ async fn server_responce_getter(mut receiver: OwnedReadHalf, client_sender: SP) 
                             }
                         }
                         log::debug!("Parse new message!!!! {:?}", &message);
+
+                        client_sender
+                                    .send(PackedMessage::ToClient(
+                                        message.to_string(),
+                                    ))
+                                    .unwrap();
+                        let mut lines = &received.clone().lines();
                     }
                     "AllData" => {
                         log::debug!("Receive a new message!!! {:?}", &received);
                         let message =
                             fcpv2::node::fcp_response::AllData::parse(&received[..]).unwrap();
                         log::debug!("Parse new message!!!! {:?}", &message);
-                        let mut lines = &received.clone().lines();
 
                         //while (&lines.next() != &Some("AllData")){
                         //   &lines.next();
