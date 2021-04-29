@@ -1,7 +1,9 @@
 use super::serv_handler::to_server_sender;
 use crate::api::types::Message as FrontMessage;
 use crate::chat::types::{PackedMessage, RP, SP};
-use crate::db::users::increase_messages_count;
+use crate::db::users::{increase_messages_count, get_user_by_id};
+use crate::db::messages::add_message;
+use crate::db::types::{Message as DBMessage, Id};
 use async_std::task;
 use fcpv2::types::traits::FcpParser;
 use r2d2::Pool;
@@ -126,6 +128,7 @@ async fn server_responce_getter(
                         >(&message[..]);
                         match parsed_message {
                             Ok(json) => {
+                                let json_clone = json.clone();
                                 let front_message = FrontMessage {
                                     date: json.date,
                                     from_me: false,
@@ -138,8 +141,23 @@ async fn server_responce_getter(
                                     ))
                                     .unwrap();
                                 log::debug!("Send gotted message to frontend...");
+
+                                log::debug!("Adding message to DB...");
+                                let user = get_user_by_id(Id(json_clone.clone().id), &db).unwrap();
+
+                                add_message(DBMessage{
+                                    id: user.messages_count,
+                                    date: json_clone.date,
+                                    user_id: Id(json_clone.id),
+                                    message: json_clone.message,
+                                    from_me: false,
+
+                                }, &db).unwrap();
+
                                 log::debug!("Increasing messages count...");
                                 increase_messages_count(crate::db::types::Id(json.id), &db).unwrap();
+
+
                             }
                             Err(_) => {
                                 log::error!("Failed to parse gotted message");
