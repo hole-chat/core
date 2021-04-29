@@ -48,6 +48,7 @@ fn main() -> io::Result<()> {
 
     //TODO Add connection pool for ruqlite
     let db = db::start_db().unwrap();
+    let d2 = db.clone();
     //let manager = r2d2_foodb::FooConnectionManager::new("localhost:1234");
 
     let (to_server_sender, server_receiver): (Sender<PackedMessage>, Receiver<PackedMessage>) =
@@ -60,7 +61,7 @@ fn main() -> io::Result<()> {
         let cs = client_sender;
         let sr = server_receiver;
 
-        let t = thread::spawn(move || listen_server(cs, sr));
+        let t = thread::spawn(move || listen_server(cs, sr, d2));
 
         t.join().expect("failed server thread").unwrap();
     });

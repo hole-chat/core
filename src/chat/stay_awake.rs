@@ -22,7 +22,7 @@ pub async fn request_repeater(ss: SP, conn: Pool<SqliteConnectionManager>) -> io
 
     loop {
         let users: Vec<crate::db::types::User> = crate::db::users::load_all_users(&db).unwrap();
-        let time = std::time::Duration::from_millis(1300);
+        let time = std::time::Duration::from_millis(10000);
         std::thread::sleep(time);
         log::debug!("enough sleep");
         for user in users {
