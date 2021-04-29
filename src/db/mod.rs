@@ -31,7 +31,7 @@ fn create_db(conn: &Connection) -> Result<()> {
     }
     match conn.execute(
         "CREATE TABLE messages (
-                  id                      INTEGER PRIMARY KEY,
+                  id                      INTEGER PRIMARY KEY AUTOINCREMENT,
                   user_id                 BLOB NOT NULL,
                   date                    datetime NOT NULL,
                   message                 TEXT NOT NULL,

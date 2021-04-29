@@ -57,13 +57,12 @@ pub fn select_n_last_messages(
 pub fn add_message(message: Message, conn: &Connection) -> Result<()> {
     match conn.execute(
         "INSERT INTO messages (
-                  id,
                   user_id,
                   date,
                   message,
                   from_me
-                  ) VALUES (?1, ?2, ?3, ?4, ?5)",
-        params![message.id, message.user_id, message.date, message.message, false],
+                  ) VALUES (?1, ?2, ?3, ?4)",
+        params![message.user_id, message.date, message.message, false],
     ) {
         Ok(_) => log::info!("message {:} added succsessfully!", message.id),
         Err(e) => {
