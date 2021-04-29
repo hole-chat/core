@@ -146,7 +146,7 @@ async fn server_responce_getter(
                                 let user = get_user_by_id(Id(json_clone.clone().id), &db).unwrap();
 
                                 add_message(DBMessage{
-                                    id: user.messages_count,
+                                    id: user.my_messages_count,
                                     date: json_clone.date,
                                     user_id: Id(json_clone.id),
                                     message: json_clone.message,
