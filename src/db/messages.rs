@@ -76,13 +76,12 @@ pub fn add_message(message: Message, conn: &Connection) -> Result<()> {
 pub fn add_my_message(message: Message, conn: &Connection) -> Result<()> {
     match conn.execute(
         "INSERT INTO messages (
-                  id,
                   user_id,
                   date,
                   message,
                   from_me
-                  ) VALUES (?1, ?2, ?3, ?4, ?5)",
-        params![message.id, message.user_id, message.date, message.message, true],
+                  ) VALUES (?1, ?2, ?3, ?4)",
+        params![message.user_id, message.date, message.message, true],
     ) {
         Ok(_) => log::info!("message {:} added succsessfully!", message.id),
         Err(e) => {
